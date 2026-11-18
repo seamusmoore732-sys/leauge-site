@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>League Scrapbook</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#0b1020;--card:#141b30;--bd:#243050;--tx:#e6ebf7;--mu:#8b97b8;--ac:#4ade80;--w:#16a34a;--l:#dc2626;--t:#64748b;--hl:#facc15;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f3f5fa;--card:#fff;--bd:#d8deec;--tx:#101830;--mu:#5a6788;--ac:#15803d}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--bd)}
+h1{font-size:20px;margin:0;letter-spacing:.5px}h1 span{color:var(--ac)}h2{font-size:15px;margin:0 0 10px;text-transform:uppercase;letter-spacing:1px;color:var(--mu)}
+nav{display:flex;gap:6px;overflow-x:auto;padding:10px 16px;scrollbar-width:none}nav button{flex:0 0 auto;white-space:nowrap}
+button,select,input,textarea{background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:7px 11px;font:inherit}
+button{cursor:pointer}button.on{background:var(--ac);color:#04210f;border-color:var(--ac);font-weight:600}
+main{padding:0 16px 40px;max-width:1200px;margin:auto}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.big{font-size:26px;font-weight:700}.mu{color:var(--mu)}.sm{font-size:12px}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%}th,td{padding:6px 9px;text-align:right;border-bottom:1px solid var(--bd);white-space:nowrap}
+th:first-child,td:first-child,th.l,td.l{text-align:left}th.s{cursor:pointer;color:var(--mu)}th.s:hover{color:var(--ac)}
+.chip{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border-radius:5px;font-size:12px;font-weight:700;margin-right:3px;color:#fff}
+.W{background:var(--w)}.L{background:var(--l)}.T{background:var(--t)}
+.cell{cursor:pointer;text-align:center;font-weight:600;color:#fff;min-width:54px}
+.tag{font-size:11px;padding:1px 6px;border-radius:5px;border:1px solid var(--bd);color:var(--mu)}
+.hl{color:var(--hl)}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+dialog{background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:12px;width:min(700px,94vw)}dialog textarea{width:100%;height:220px;font-family:monospace;font-size:12px}
+.g{display:flex;justify-content:space-between;gap:10px;padding:4px 0}
+.g2{display:grid;gap:12px;grid-template-columns:1fr 1fr}@media(max-width:520px){.g2{grid-template-columns:1fr}}
+@keyframes bgrow{from{transform:scaleX(0)}}[hidden]{display:none!important}
+#login{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto}
+.lcard{width:min(460px,100%);text-align:center}
+.lcard h1{font-size:28px;margin:6px 0 8px}.lcard p{margin:6px 0 16px}
+#li{width:100%;font-size:18px;padding:15px 16px;border-radius:12px;text-align:center}
+#lgo{width:100%;margin-top:10px;padding:15px;font-size:17px;border-radius:12px}
+#lhint{min-height:20px;margin:8px 0;color:var(--ac);font-size:13px}
+#lmsg{min-height:20px;margin:6px 0;font-weight:600}#lmsg.er{color:#f87171}
+#lpick button{display:block;width:100%;margin:6px 0;text-align:left;padding:12px 14px}
+#adv{margin-top:14px;text-align:left}#adv input{width:100%;margin-top:6px}
+</style></head><body>
+<header><div><h1 id="brand"></h1><span class="mu sm" id="bld"></span></div>
+<div class="row" style="margin:0"><select id="flt" hidden></select>
+<button id="reload">↻ Reload live</button><button id="paste">Import file</button><button id="sw">⇄ Switch league</button></div></header>
+<nav id="nav"></nav><main><div id="st" class="mu sm" style="margin:6px 0 12px"></div><div id="app"></div></main>
+<div id="login" hidden><div class="lcard"><div style="font-size:44px">🏈</div><h1 id="lbrand"></h1>
+<p class="mu">Paste your <b>league link</b>, <b>league ID</b> or <b>Sleeper username</b>. That’s all it takes.</p>
+<input id="li" placeholder="Username, league ID or link" autocomplete="off" autocapitalize="off" spellcheck="false">
+<div id="lhint"></div><button id="lgo" class="on">View my league</button><div id="lmsg"></div><div id="lpick"></div>
+<details id="adv" hidden><summary class="mu sm">ESPN private league? (optional)</summary><p class="mu sm">Easier: in ESPN, open League Settings and make the league viewable to the public. Otherwise paste your two ESPN cookies:</p><input id="swid" placeholder="SWID"><input id="s2" placeholder="espn_s2"></details>
+<p class="mu sm" style="margin-top:18px">Works with Sleeper and ESPN. Have both? Paste both, separated by a space, to combine them.</p></div></div>
+<dialog id="dlg"><h2>Import a data file (backup option)</h2><p class="mu sm">Only needed if live loading ever fails. Grab the data in your browser and paste it here. Open <b>sleeper.com</b> (or any page), press F12, choose Console, paste the matching script below, press Enter, then paste the copied result into the box and Import. Do the ESPN one on a fantasy.espn.com tab. Both can be imported in any order.</p><details><summary>Sleeper script (all seasons)</summary><textarea readonly id="sn1" style="height:90px" onclick="this.select()"></textarea></details><details><summary>ESPN script (2018–2026)</summary><textarea readonly id="sn2" style="height:90px" onclick="this.select()"></textarea></details><div class="row" style="margin-top:10px;position:sticky;top:0"><button class="on" id="go">Import</button><button id="cx">Close</button></div><div class="row" style="margin-top:10px"><label><b>Easiest:</b> after running a script above, a file downloads. Choose it here: <input type="file" id="fl" accept=".json,.txt"></label></div><p class="mu sm" style="margin:6px 0">Or paste the data instead:</p><textarea id="ta" placeholder="Paste the copied data here, then click Import above" style="height:120px"></textarea><div id="er" style="margin-top:8px;color:#f87171;font-weight:600"></div></dialog>
+<script>
+let SL_NOW="",ESPN_ID="";const YEAR=(()=>{const d=new Date();return d.getMonth()<2?d.getFullYear()-1:d.getFullYear()})();
+const S={games:[],champs:[],po:{},filter:"all",tab:"home",sk:"pct",sd:-1,open:{},h1:"",h2:"",ws:null,ww:null,log:[]};
+let MK="mmap",MAP={};const loadMap=()=>{MAP={};try{MAP=JSON.parse(localStorage.getItem(MK)||"{}")}catch(e){}};
+const save=()=>{try{localStorage.setItem(MK,JSON.stringify(MAP))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $=id=>document.getElementById(id),f2=n=>(+n).toFixed(2);
+// Built-in Sleeper username <-> ESPN name links (the manager mapper can still override these)
+const LINK={};
+const SLU={}; // Sleeper display_name (lowercase) -> username (lowercase), filled as seasons load
+const canon=k=>{if(MAP[k])return MAP[k];const n=k.slice(k.indexOf(":")+1),l=n.toLowerCase().trim();
+ const un=SLU[l];if(un&&LINK[un])return LINK[un];if(LINK[l])return LINK[l];
+ return n};
+function status(m){S.log.push(m);$("st").textContent=S.log.slice(-3).join(" · ")}
+function addEspn(d){const season=d.seasonId;if(!season||!d.schedule)return 0;
+ S.games=S.games.filter(g=>!(g.src==="espn"&&g.season===season));S.champs=S.champs.filter(c=>!(c.src==="espn"&&c.season===season));
+ const mem={};(d.members||[]).forEach(m=>mem[m.id]=((m.firstName||"")+" "+(m.lastName||"")).trim()||m.displayName);
+ const nm={};(d.teams||[]).forEach(t=>{const o=t.primaryOwner||(t.owners||[])[0];nm[t.id]="espn:"+(mem[o]||((t.location||"")+" "+(t.nickname||"")).trim()||"Team "+t.id);
+  S.tn=S.tn||{};S.tn[season+"|"+nm[t.id]]=((t.location||"")+" "+(t.nickname||"")).trim()||t.name||"";
+  if(t.rankCalculatedFinal===1)S.champs.push({src:"espn",season,key:nm[t.id]})});
+ S.en=S.en||{};S.en[season]=nm;
+ const mc=(d.settings&&d.settings.scheduleSettings&&d.settings.scheduleSettings.matchupPeriodCount)||14;let n=0;
+ d.schedule.forEach(s=>{if(!s.away||!s.home)return;const a=s.home.totalPoints,b=s.away.totalPoints;if(!a&&!b)return;
+  S.games.push({src:"espn",season,week:s.matchupPeriodId,po:s.matchupPeriodId>mc,a:nm[s.home.teamId],b:nm[s.away.teamId],pa:a,pb:b,agg:Object.keys((s.home.pointsByScoringPeriod||{})).length>1});n++});
+ S.po[season+"espn"]=(d.settings&&d.settings.scheduleSettings&&d.settings.scheduleSettings.playoffTeamCount)||6;
+ // Use ESPN's real winners bracket when the season's bracket is complete; otherwise fall back to standings
+ const pset=new Set();d.schedule.forEach(s=>{if(s.playoffTierType==="WINNERS_BRACKET"&&s.home&&s.away&&(s.home.totalPoints||s.away.totalPoints)){pset.add(nm[s.home.teamId]);pset.add(nm[s.away.teamId])}});
+ S.pl=S.pl||{};if(pset.size&&pset.size>=S.po[season+"espn"])S.pl[season+"espn"]=[...pset];else delete S.pl[season+"espn"];return n}
+async function loadEspn(){if(!ESPN_ID)return;let ok=0;const ys=[];for(let y=2018;y<=YEAR;y++)ys.push(y);
+ const rs=await Promise.allSettled(ys.map(y=>J(`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${y}/segments/0/leagues/${ESPN_ID}?view=mTeam&view=mMatchup&view=mStandings&view=mSettings`)));
+ rs.forEach(r=>{if(r.status==="fulfilled"&&addEspn(r.value))ok++});
+ status(ok?"ESPN: "+ok+" seasons loaded":"ESPN didn’t return data. Is the league public? (Or use Import file.)")}
+async function loadSleeperFile(){}
+async function loadAll(){S.log=[];await loadSleeperFile();await loadSleeper();fixSleeper();render();loadExtra().then(()=>{render();loadNames().then(render)});loadNames().then(render);await loadEspn();render();loadEspnPlayers().then(render)}
+// ---------- derived ----------
+const res=(x,y)=>x>y?"W":x<y?"L":"T";
+function data(){const gs=S.games.filter(g=>S.filter==="all"||g.src===S.filter).map(g=>({...g,A:canon(g.a),B:canon(g.b)}))
+ .sort((x,y)=>x.season-y.season||x.week-y.week||(x.src<y.src?-1:1));
+ const ch=S.champs.filter(c=>S.filter==="all"||c.src===S.filter).map(c=>({...c,m:canon(c.key)}));
+ const C={},H={};const gm=m=>C[m]=C[m]||{m,seasons:new Set(),w:0,l:0,t:0,pf:0,pa:0,ch:0,by:{},hist:[]};
+ const hs=(x,y)=>(H[x+"|"+y]=H[x+"|"+y]||{w:0,l:0,t:0,pf:0,pa:0,g:[]});
+ gs.forEach(g=>{[[g.A,g.B,g.pa,g.pb],[g.B,g.A,g.pb,g.pa]].forEach(([m,o,p,q],ix)=>{const c=gm(m),r=g.ow?((g.ow==="a")===(ix===0)?"W":"L"):res(p,q);c.hist.push({r,g,p,q,o});
+  const h=hs(m,o);h[r.toLowerCase()]++;h.pf+=p;h.pa+=q;h.g.push({g,p,q,r});
+  if(!g.po){c.seasons.add(g.season+g.src);const k=g.season+"·"+g.src,b=c.by[k]=c.by[k]||{season:g.season,src:g.src,w:0,l:0,t:0,pf:0,pa:0};
+   c[r.toLowerCase()]++;b[r.toLowerCase()]++;c.pf+=p;c.pa+=q;b.pf+=p;b.pa+=q}})});
+ ch.forEach(c=>{gm(c.m).ch++});
+ return{gs,ch,C,H,hs,mg:Object.keys(C).sort()}}
+const rec=c=>c.w+"-"+c.l+(c.t?"-"+c.t:""),pctOf=c=>{const n=c.w+c.l+c.t;return n?(c.w+c.t/2)/n:0};
+const form=(D,m,n=5)=>((D.C[m]||{hist:[]}).hist.slice(-n).map(x=>`<span class="chip ${x.r}">${x.r}</span>`).join(""))||"<span class=mu>—</span>";
+function streaks(D,upto){const o={};D.mg.forEach(m=>{let s=0,t="",best=0;D.C[m].hist.forEach(x=>{if(upto&&(x.g.season>upto[0]||x.g.season===upto[0]&&x.g.week>upto[1]))return;
+ if(x.r==="T"){s=0;t=""}else if(x.r===t)s++;else{t=x.r;s=1}if(x.r==="W")best=Math.max(best,s)});o[m]={s,t,best}});return o}
+const lbl=g=>g.season+" Wk"+g.week+" <span class=tag>"+(g.src==="espn"?"ESPN":"Sleeper")+"</span>";
+// ---------- views ----------
+function records(D){const rows=D.mg.map(m=>D.C[m]).filter(c=>c.w+c.l+c.t>0);const K={m:c=>c.m,seasons:c=>c.seasons.size,rec:c=>c.w,pct:pctOf,pf:c=>c.pf,pa:c=>c.pa,diff:c=>c.pf-c.pa,ch:c=>c.ch};
+ rows.sort((x,y)=>{const a=K[S.sk](x),b=K[S.sk](y);return(a<b?-1:a>b?1:0)*S.sd});
+ const th=(k,t)=>`<th class="s${k==="m"?" l":""}" data-k="${k}">${t}${S.sk===k?(S.sd>0?" ▲":" ▼"):""}</th>`;
+ return`<div class="card scroll"><h2>Career standings (regular season)</h2><table><tr><th>#</th>${th("m","Manager")}${th("seasons","Seasons")}${th("rec","W-L-T")}${th("pct","Win %")}${th("pf","PF")}${th("pa","PA")}${th("diff","Diff")}${th("ch","🏆")}</tr>
+ ${rows.map((c,i)=>`<tr class="ex" data-m="${esc(c.m)}" style="cursor:pointer"><td>${i+1}</td><td>${S.open[c.m]?"▾":"▸"} <b>${esc(c.m)}</b></td><td>${c.seasons.size}</td><td>${rec(c)}</td><td>${f2(pctOf(c)*100)}</td><td>${f2(c.pf)}</td><td>${f2(c.pa)}</td><td style="color:var(${c.pf>=c.pa?"--ac":"--l"})">${f2(c.pf-c.pa)}</td><td>${c.ch}</td></tr>
+ ${S.open[c.m]?Object.values(c.by).sort((x,y)=>y.season-x.season).map(b=>`<tr class=mu><td></td><td>${b.season} <span class=tag>${b.src}</span></td><td></td><td>${rec(b)}</td><td>${f2(pctOf(b)*100)}</td><td>${f2(b.pf)}</td><td>${f2(b.pa)}</td><td>${f2(b.pf-b.pa)}</td><td></td></tr>`).join(""):""}`).join("")}</table></div>`}
+function h2h(D){const ms=D.mg,opt=v=>ms.map(m=>`<option ${m===v?"selected":""}>${esc(m)}</option>`).join("");
+ const h=D.H[S.h1+"|"+S.h2]||{w:0,l:0,t:0,pf:0,pa:0,g:[]},st=(()=>{let s=0,t="";h.g.forEach(x=>{if(x.r==="T"){s=0;t=""}else if(x.r===t)s++;else{t=x.r;s=1}});return s?(t==="W"?S.h1:S.h2)+" · "+s+" straight":"—"})();
+ return`<div class="card scroll"><h2>Rivalry matrix (row’s record vs column)</h2><table><tr><th></th>${ms.map(m=>`<th>${esc(m)}</th>`).join("")}</tr>
+ ${ms.map(a=>`<tr><td><b>${esc(a)}</b></td>${ms.map(b=>{if(a===b)return"<td></td>";const h=D.H[a+"|"+b];if(!h)return'<td class=mu style="text-align:center">·</td>';
+ const bg=h.w>h.l?"var(--w)":h.w<h.l?"var(--l)":"var(--t)";return`<td class=cell data-a="${esc(a)}" data-b="${esc(b)}" style="background:${bg}">${rec(h)}</td>`}).join("")}</tr>`).join("")}</table><div class="sm mu" style="margin-top:6px">Click a cell to open the deep dive.</div></div>
+ <div class=card><h2>Rivalry deep dive</h2><div class=row><select id=s1>${opt(S.h1)}</select> vs <select id=s2>${opt(S.h2)}</select></div>
+ <div class=big>${esc(S.h1)} ${rec(h)} ${esc(S.h2)}</div><div class="mu sm">Points ${f2(h.pf)} – ${f2(h.pa)} · Current streak: ${esc(st)}</div>${tape(D,h)}
+ <div class=scroll style="margin-top:10px"><table><tr><th>Game</th><th>${esc(S.h1)}</th><th>${esc(S.h2)}</th><th>Margin</th><th>Result</th></tr>
+ ${[...h.g].reverse().map(x=>`<tr><td>${lbl(x.g)}${x.g.po?" <span class=tag>playoff</span>":""}</td><td>${f2(x.p)}</td><td>${f2(x.q)}</td><td>${f2(Math.abs(x.p-x.q))}</td><td><span class="chip ${x.r}">${x.r}</span></td></tr>`).join("")||"<tr><td colspan=5 class=mu>No meetings yet.</td></tr>"}</table></div></div>`}
+function weekly(D){const ss=[...new Set(D.gs.map(g=>g.season))].sort((a,b)=>b-a);if(!ss.length)return"<div class=card>No data loaded.</div>";
+ if(!ss.includes(S.ws))S.ws=ss[0];const ws=[...new Set(D.gs.filter(g=>g.season===S.ws).map(g=>g.week))].sort((a,b)=>a-b);if(!ws.includes(S.ww))S.ww=ws[ws.length-1];
+ const gs=D.gs.filter(g=>g.season===S.ws&&g.week===S.ww),all=D.gs.filter(g=>g.season===S.ws&&g.week<=S.ww&&!g.po);
+ const sc=gs.flatMap(g=>[{m:g.A,p:g.pa},{m:g.B,p:g.pb}]).sort((a,b)=>b.p-a.p),mg=g=>Math.abs(g.pa-g.pb);
+ const st=streaks(D,[S.ws,S.ww]),sk=D.mg.filter(m=>st[m].s>=3&&D.C[m].hist.some(x=>x.g.season===S.ws&&x.g.week===S.ww));
+ const pre={};D.gs.filter(g=>g.season===S.ws&&g.week<S.ww).forEach(g=>{[[g.A,g.pa],[g.B,g.pb]].forEach(([m,p])=>{const o=pre[m]=pre[m]||[0,0];o[0]+=p;o[1]++})});
+ const av=m=>pre[m]?pre[m][0]/pre[m][1]:null;
+ const up=gs.map(g=>{const w=g.pa>g.pb?g.A:g.B,l=w===g.A?g.B:g.A,a=av(w),b=av(l);return a!=null&&b!=null&&a<b?{g,w,l,d:b-a}:null}).filter(Boolean).sort((x,y)=>y.d-x.d).slice(0,3);
+ const tb={};all.forEach(g=>{[[g.A,g.pa,g.pb],[g.B,g.pb,g.pa]].forEach(([m,p,q])=>{const o=tb[m]=tb[m]||{m,w:0,l:0,t:0,pf:0};o[res(p,q).toLowerCase()]++;o.pf+=p})});
+ const tbl=Object.values(tb).sort((a,b)=>(b.w+b.t/2)-(a.w+a.t/2)||b.pf-a.pf),line=S.po[S.ws+(S.filter==="all"?"sleeper":S.filter)]||6;
+ const watch=gs.filter(g=>[g.A,g.B].some(m=>m===S.h1||m===S.h2));
+ const gl=g=>`${esc(g.A)} <b>${f2(g.pa)}</b> – <b>${f2(g.pb)}</b> ${esc(g.B)}`;
+ return`<div class=row><select id=ws>${ss.map(s=>`<option ${s===S.ws?"selected":""}>${s}</option>`).join("")}</select><select id=ww>${ws.map(w=>`<option value=${w} ${w===S.ww?"selected":""}>Week ${w}</option>`).join("")}</select></div>
+ <div class=grid><div class=card><h2>${esc(S.h1)} &amp; ${esc(S.h2)} weekly watch</h2>${watch.map(g=>`<div class=g><span>${gl(g)}</span><span class=mu>${f2(mg(g))} pt margin</span></div>`).join("")||"<span class=mu>Neither played in this week’s data.</span>"}</div>
+ <div class=card><h2>Highs &amp; lows</h2>${sc.length?`<div class=g><span>🔥 High</span><b>${esc(sc[0].m)} ${f2(sc[0].p)}</b></div><div class=g><span>🧊 Low</span><b>${esc(sc[sc.length-1].m)} ${f2(sc[sc.length-1].p)}</b></div>
+ <div class=g><span>😰 Closest</span><span>${gl([...gs].sort((a,b)=>mg(a)-mg(b))[0])}</span></div><div class=g><span>💥 Biggest margin</span><span>${gl([...gs].sort((a,b)=>mg(b)-mg(a))[0])}</span></div>`:""}</div>
+ <div class=card><h2>Streaks (3+)</h2>${sk.map(m=>`<div class=g><span>${esc(m)}</span><b class="${st[m].t==="W"?"":"mu"}">${st[m].s}${st[m].t}</b></div>`).join("")||"<span class=mu>No active streaks of 3+.</span>"}</div>
+ <div class=card><h2>Biggest upsets</h2>${up.map(u=>`<div class=g><span>${esc(u.w)} over ${esc(u.l)}</span><span class=mu>avg gap ${f2(u.d)}</span></div>`).join("")||"<span class=mu>No upsets by season average.</span>"}</div></div>
+ <div class="card scroll"><h2>Playoff race through week ${S.ww} (line: top ${line})</h2><table><tr><th>#</th><th>Manager</th><th>W-L-T</th><th>PF</th><th></th></tr>${tbl.map((c,i)=>`<tr><td>${i+1}</td><td class=l>${esc(c.m)}</td><td>${rec(c)}</td><td>${f2(c.pf)}</td><td>${i<line?"<span class=tag style='color:var(--ac)'>in</span>":""}${i===line-1?"":""}</td></tr>`).join("")}</table></div>
+ <div class=card><h2>Scoreboard · Week ${S.ww}${gs[0]&&gs[0].po?" (playoffs)":""}</h2>${gs.map(g=>`<div class=g><span class="${g.pa>g.pb?"":"mu"}">${esc(g.A)} ${f2(g.pa)}</span><span class=tag>${g.src}</span><span class="${g.pb>g.pa?"":"mu"}">${f2(g.pb)} ${esc(g.B)}</span></div>`).join("")}</div>`}
+function mapper(){const keys=[...new Set(S.games.flatMap(g=>[g.a,g.b]))].sort();
+ return`<div class=card><h2>Manager mapper</h2><p class="mu sm">Give the same name to a Sleeper and an ESPN identity to merge them (e.g. set both to the same name). Saved in this browser.</p>
+ <datalist id=dl>${[...new Set(keys.map(canon))].map(n=>`<option value="${esc(n)}">`).join("")}</datalist>
+ <table>${keys.map(k=>`<tr><td class=l><span class=tag>${k.split(":")[0]}</span> ${esc(k.slice(k.indexOf(":")+1))}</td><td class=l><input list=dl data-k="${esc(k)}" value="${esc(canon(k))}"></td></tr>`).join("")||"<tr><td class=mu>No identities loaded yet.</td></tr>"}</table>
+ <div class=row style="margin-top:10px"><button id=rs>Reset mappings</button></div></div>`}
+const nf=x=>(+x).toFixed(1),ky=k=>k.split("|")[0];
+function gameScores(D){const G=D.gs.filter(g=>!g.agg&&(g.pa||g.pb));if(!G.length)return[];
+ const mc=Math.max(...G.map(g=>g.pa+g.pb)),mm=Math.max(...G.map(g=>Math.min(g.pa,g.pb))),fin={},rm={},top={};
+ G.filter(g=>g.po).forEach(g=>{const k=sk(g);fin[k]=Math.max(fin[k]||0,g.week)});G.filter(g=>!g.po).forEach(g=>{const k=sk(g);rm[k]=Math.max(rm[k]||0,g.week)});
+ (S.pp||[]).forEach(x=>{const k=x.season+"|"+x.src+"|"+x.week+"|"+canon(x.own);top[k]=Math.max(top[k]||0,x.pts)});
+ const hp=Object.keys(top).length>0,mb=Math.max(1,...Object.values(top)),ch=D.ch.map(c=>c.season+"|"+c.src+"|"+c.m);
+ return G.map(g=>{const k=sk(g),isF=g.po&&g.week===fin[k]&&(ch.includes(k+"|"+g.A)||ch.includes(k+"|"+g.B)),m=Math.abs(g.pa-g.pb),late=!g.po&&g.week>(rm[k]||0)-3;
+  const st=30*(isF?1:g.po?.8:late?.5:.25),bp=Math.max(top[k+"|"+g.week+"|"+g.A]||0,top[k+"|"+g.week+"|"+g.B]||0),
+   pf=25*(hp?.5*(g.pa+g.pb)/mc+.5*bp/mb:(g.pa+g.pb)/mc),dr=20*Math.exp(-m/12),cp=15*Math.min(g.pa,g.pb)/mm,hi=isF?10:g.po?6:2;
+  return{g,m,isF,st,pf,dr,cp,hi,tot:st+pf+dr+cp+hi}}).sort((a,b)=>b.tot-a.tot)}
+const RUBRIC=`<div class=card style="max-width:280px"><h2>Game grade (100)</h2><div class=g><span>Stakes + Importance</span><b>30</b></div><div class=g><span>Player Performance</span><b>25</b></div><div class=g><span>Drama + Excitement</span><b>20</b></div><div class=g><span>Competition</span><b>15</b></div><div class=g><span>Historical Impact</span><b>10</b></div><div class="mu sm">Stakes: championship, playoff, late-season games. Drama is scored from the final margin (lead-change and Monday-night data aren’t available).</div></div>`;
+const bar=(v,max,c)=>`<div style="background:var(--bd);border-radius:4px;height:7px"><div style="width:${Math.min(100,v/max*100)}%;background:${c};height:7px;border-radius:4px"></div></div>`;
+function gameCard(s,i){const g=s.g,pl=m=>(S.pp||[]).filter(x=>x.season===g.season&&x.src===g.src&&x.week===g.week&&canon(x.own)===m).sort((a,b)=>b.pts-a.pts),
+ side=(m,p)=>{const L=pl(m);return`<div style="flex:1;min-width:140px"><div class=sm><b>${esc(m)}</b> · ${nf(p)}</div>${L.map(x=>`<div class=g style="padding:2px 0"><span class=sm>${esc(pn(x.id))} <span class=mu>${esc((S.pos||{})[x.id]||"")}</span></span><b class=sm>${nf(x.pts)}</b></div>`).join("")||'<span class="mu sm">Not loaded</span>'}</div>`};
+ return`<div class=card style="margin:0"><div class=row style="justify-content:space-between;margin:0"><b>#${i+1} · ${esc(g.A)} ${nf(g.pa)} – ${nf(g.pb)} ${esc(g.B)}</b><span class=big style="color:var(--hl)">${s.tot.toFixed(0)}</span></div><div class="mu sm">${g.season} Week ${g.week}${s.isF?" · Championship":g.po?" · Playoffs":""} · margin ${nf(s.m)}</div>${[["Stakes + Importance",s.st,30],["Player Performance",s.pf,25],["Drama + Excitement",s.dr,20],["Competition",s.cp,15],["Historical Impact",s.hi,10]].map(([t,v,m])=>`<div class="sm" style="margin-top:6px">${t} <b>${v.toFixed(1)}/${m}</b></div>${bar(v,m,"var(--ac)")}`).join("")}<details style="margin-top:10px"><summary class=mu>Players &amp; points</summary><div class=row style="align-items:flex-start;margin:8px 0 0;gap:14px">${side(g.A,g.pa)}${side(g.B,g.pb)}</div></details></div>`}
+function gamesTab(D){const R=gameScores(D);if(!R.length)return EMP;return`<div class=row style="align-items:flex-start;justify-content:space-between"><h2>Greatest games of all time</h2>${RUBRIC}</div><div class=grid>${R.slice(0,5).map(gameCard).join("")}</div>`}
+function seasonStory(D,k){const gs=D.gs.filter(g=>sk(g)===k&&!g.agg),reg=gs.filter(g=>!g.po),T={};
+ reg.forEach(g=>[[g.A,g.pa,g.pb],[g.B,g.pb,g.pa]].forEach(([m,p,q])=>{const t=T[m]=T[m]||{m,w:0,l:0,pf:0,h:[]};p>q?t.w++:p<q&&t.l++;t.pf+=p;t.h.push(p>q?"W":p<q?"L":"T")}));
+ const R=Object.values(T).sort((a,b)=>b.w-a.w||b.pf-a.pf);if(!R.length)return"";
+ const top=R[0],last=R[R.length-1],hi=[...R].sort((a,b)=>b.pf-a.pf)[0],c=D.ch.find(x=>sk(x)===k),
+  run=Object.values(T).map(t=>{let b=0,n=0;t.h.forEach(r=>{n=r==="W"?n+1:0;b=Math.max(b,n)});return{m:t.m,b}}).sort((a,b)=>b.b-a.b)[0],
+  cl=[...reg].sort((a,b)=>Math.abs(a.pa-a.pb)-Math.abs(b.pa-b.pb))[0],bl=[...reg].sort((a,b)=>Math.abs(b.pa-b.pb)-Math.abs(a.pa-a.pb))[0];
+ const fw=Math.max(0,...gs.filter(g=>g.po).map(g=>g.week)),fg=c&&gs.find(g=>g.po&&g.week===fw&&(g.A===c.m||g.B===c.m));
+ let s=`${esc(top.m)} owned the regular season at ${top.w}-${top.l}, while ${esc(hi.m)} scored the most points (${nf(hi.pf)}). `;
+ if(run&&run.b>=3)s+=`${esc(run.m)} ripped off a ${run.b}-game win streak that reshaped the standings. `;
+ if(cl)s+=`The closest call came in Week ${cl.week}, ${esc(cl.A)} vs ${esc(cl.B)}, decided by ${nf(Math.abs(cl.pa-cl.pb))}; the wildest blowout was ${nf(Math.abs(bl.pa-bl.pb))} points in Week ${bl.week}. `;
+ if(c){s+=`${esc(c.m)} took the title`;if(fg){const o=fg.A===c.m?fg.B:fg.A;s+=` over ${esc(o)}, ${nf(Math.max(fg.pa,fg.pb))}–${nf(Math.min(fg.pa,fg.pb))}`}s+=". "}
+ s+=`${esc(last.m)} finished last (${last.w}-${last.l}) and earned a spot in the Toilet Bowl.`;return{s,top,c,gs}}
+function awardsTab(D){const ks=seasonsOf(D),R=gameScores(D);if(!ks.length)return EMP;
+ return`<div class=row style="align-items:flex-start;justify-content:space-between"><h2>Yearly awards &amp; season stories</h2>${RUBRIC}</div>`+ks.map(k=>{const st=seasonStory(D,k);if(!st)return"";
+  const gy=R.find(x=>sk(x.g)===k),bt=st.c?st.c.m:st.top.m;
+  return`<div class=card><h2>${ky(k)} season</h2><div class=grid style="margin-bottom:10px"><div class=card style="margin:0"><div class=mu>🏆 Team of the year</div><div class=big>${esc(bt)}</div><div class="mu sm">${st.c?"Champion":"Best record"} · ${st.top.w}-${st.top.l} best in league: ${esc(st.top.m)}</div></div>${gy?`<div class=card style="margin:0"><div class=mu>⭐ Game of the year</div><div class=big>${esc(gy.g.A)} ${nf(gy.g.pa)}–${nf(gy.g.pb)} ${esc(gy.g.B)}</div><div class="mu sm">Week ${gy.g.week} · grade ${gy.tot.toFixed(0)}/100</div></div>`:""}</div><p style="line-height:1.6;margin:0">${st.s}</p></div>`}).join("")}
+function tbRows(D){const {done}=plSets(D),by={};D.gs.filter(g=>!g.po&&!g.agg&&done.includes(g.season+g.src)).forEach(g=>[[g.A,g.pa,g.pb],[g.B,g.pb,g.pa]].forEach(([m,p,q])=>{const k=sk(g),t=(by[k]=by[k]||{})[m]=(by[k][m]||{m,w:0,pf:0});p>q&&t.w++;t.pf+=p}));
+ return Object.entries(by).map(([k,o])=>{const a=Object.values(o).sort((x,y)=>x.w-y.w||x.pf-y.pf)[0];return{s:+ky(k),m:a.m,w:a.w}}).sort((a,b)=>b.s-a.s)}
+function toiletSVG(rows,mini){const L=rows.slice(0,mini?2:4);return`<svg viewBox="0 0 200 230" style="width:${mini?110:200}px;display:block;margin:auto" role="img" aria-label="Toilet bowl"><rect x="62" y="8" width="76" height="46" rx="8" fill="#94a3b8"/><ellipse cx="100" cy="74" rx="78" ry="17" fill="#cbd5e1"/><path d="M32 78 Q30 178 100 180 Q170 178 168 78 Z" fill="#e2e8f0"/><ellipse cx="100" cy="82" rx="58" ry="11" fill="#38bdf8" opacity=".55"/><rect x="78" y="180" width="44" height="32" fill="#94a3b8"/><rect x="58" y="210" width="84" height="10" rx="4" fill="#64748b"/>${L.map((r,i)=>`<text x="100" y="${110+i*20}" text-anchor="middle" font-size="${mini?9:11}" fill="#0f172a" font-weight="700">${r.s} ${esc(r.m).slice(0,14)}</text>`).join("")}<text x="100" y="40" text-anchor="middle" font-size="11" fill="#0f172a" font-weight="700">🚽</text></svg>`}
+function sacko(D){return sacko0(D)}
+function dash(D){const ks=seasonsOf(D);if(!ks.length)return hub(D);const k=ks[0],gs=D.gs.filter(g=>sk(g)===k&&!g.agg),reg=gs.filter(g=>!g.po),T={};
+ reg.forEach(g=>[[g.A,g.pa,g.pb],[g.B,g.pb,g.pa]].forEach(([m,p,q])=>{const t=T[m]=T[m]||{m,w:0,l:0,pf:0};p>q?t.w++:p<q&&t.l++;t.pf+=p}));
+ const R=Object.values(T).sort((a,b)=>b.w-a.w||b.pf-a.pf),wk=Math.max(0,...gs.map(g=>g.week)),W=gs.filter(g=>g.week===wk),
+  mw=[...W].sort((a,b)=>(b.pa+b.pb)-(a.pa+a.pb))[0],sc=W.flatMap(g=>[{m:g.A,p:g.pa},{m:g.B,p:g.pb}]).sort((a,b)=>b.p-a.p).slice(0,3),tb=tbRows(D);
+ return`<div class=grid><div class="card scroll"><h2>${ky(k)} standings</h2><table>${R.map((t,i)=>`<tr><td>${i+1}</td><td class=l><b>${esc(t.m)}</b></td><td>${t.w}-${t.l}</td><td>${nf(t.pf)}</td></tr>`).join("")}</table></div>
+ <div class=card><h2>Toilet bowl watch</h2>${toiletSVG(tb,1)}<div class="mu sm" style="text-align:center">Currently last: <b>${esc(R[R.length-1].m)}</b></div></div>
+ <div class=card><h2>Week ${wk} spotlight</h2>${mw?`<div class=mu>Matchup of the week</div><b>${esc(mw.A)} ${nf(mw.pa)} – ${nf(mw.pb)} ${esc(mw.B)}</b>`:""}<h2 style="margin-top:12px">Top scores</h2>${sc.map(x=>`<div class=g><span>${esc(x.m)}</span><b>${nf(x.p)}</b></div>`).join("")}</div></div>`+hub(D)}
+
+const TABS=[["home","Home"],["po","Playoffs"],["scenarios","Scenarios"],["wk","Weekly"],["power","Power"],["story","Storylines"],["charts","Charts"],["luck","All-Play"],["str","Streaks"],["games","Greatest Games"],["awards","Awards"],["tx","Transactions"],["draft","Draft"],["sacko","Toilet Bowl"],["h2h","Head-to-head"],["profile","Profiles"],["whatif","What-If"],["rec","All-time"],["vault","Record Book"],["eras","Eras"],["hof","Hall of Fame"],["atm","Player Hall of Fame"],["map","Manager mapper"]];
+
+const ord=n=>{const t=["th","st","nd","rd"],v=n%100;return n+(t[(v-20)%10]||t[v]||t[0])};
+function runs(hist){let best={n:0},worst={n:0},cur={n:0,t:""},run=null;
+ hist.forEach(x=>{if(x.r==="T"){run=null;cur={n:0,t:""};return}
+  if(run&&run.t===x.r){run.n++;run.e=x.g}else run={t:x.r,n:1,s:x.g,e:x.g};
+  cur={n:run.n,t:run.t};if(run.t==="W"&&run.n>best.n)best={...run};if(run.t==="L"&&run.n>worst.n)worst={...run}});
+ return{best,worst,cur}}
+const span=r=>r.n?r.s.season+" Wk"+r.s.week+(r.n>1?" – "+r.e.season+" Wk"+r.e.week:""):"—";
+function streakboard(D){const R=D.mg.filter(m=>D.C[m].hist.length).map(m=>({m,...runs(D.C[m].hist)}));
+ const board=(title,key,cls)=>`<div class=card><h2>${title}</h2><table><tr><th>#</th><th class=l>Manager</th><th>Games</th><th class=l>When</th></tr>`+
+  [...R].sort((a,b)=>b[key].n-a[key].n||a.m.localeCompare(b.m)).map((r,i)=>`<tr><td>${i+1}</td><td class=l><b>${esc(r.m)}</b></td><td><span class="chip ${cls}" style="width:auto;padding:0 7px">${r[key].n}</span></td><td class="l mu sm">${span(r[key])}</td></tr>`).join("")+`</table></div>`;
+ const act=`<div class=card><h2>Active streaks</h2><table><tr><th>#</th><th class=l>Manager</th><th>Streak</th></tr>`+
+  [...R].sort((a,b)=>(b.cur.t==="W"?b.cur.n:-b.cur.n)-(a.cur.t==="W"?a.cur.n:-a.cur.n)).map((r,i)=>`<tr><td>${i+1}</td><td class=l><b>${esc(r.m)}</b></td><td>${r.cur.n?`<span class="chip ${r.cur.t}" style="width:auto;padding:0 7px">${r.cur.t}${r.cur.n}</span>`:"—"}</td></tr>`).join("")+`</table></div>`;
+ return`<div class=card><h2>Streak leaderboard</h2><span class="mu sm">Every manager’s longest win streak and longest losing streak, across ESPN and Sleeper seasons combined (regular season and playoffs, in the order the games were played). Use the dropdown at the top to look at one league only.</span></div>
+ <div class=grid>${board("Longest win streaks","best","W")}${board("Longest losing streaks","worst","L")}${act}</div>`}
+function story(){
+ const sv=S.filter;S.filter="all";const D=data();S.filter=sv;const N=S.next;
+ if(!N)return`<div class=card><h2>Storylines</h2><span class=mu>No upcoming matchups loaded yet. They appear after the next Sleeper update, once next week’s matchups are set.</span></div>`;
+ const key=N.season+"·sleeper",T=D.mg.filter(m=>D.C[m].by[key]).map(m=>({m,b:D.C[m].by[key]}));
+ T.sort((x,y)=>y.b.w-x.b.w||y.b.pf-x.b.pf);const rk={};T.forEach((t,i)=>rk[t.m]=i+1);
+ const gp=m=>{const b=D.C[m].by[key];return b?b.w+b.l+b.t:0},rc=m=>{const b=D.C[m].by[key]||{w:0,l:0,t:0};return b.w+"-"+b.l+(b.t?"-"+b.t:"")};
+ const avg=m=>gp(m)?D.C[m].by[key].pf/gp(m):0,byP=[...T].sort((x,y)=>avg(y.m)-avg(x.m)),pr={};byP.forEach((t,i)=>pr[t.m]=i+1);
+ const st=streaks(D),pot=N.pot,n=T.length,e=esc;
+ const SM=getSim(N);
+ const cards=N.pairs.map(([ka,kb])=>{const A=canon(ka),B=canon(kb),h=D.H[A+"|"+B]||{w:0,l:0,t:0,pf:0,pa:0,g:[]},gl=h.g,an=[],a=e(A),b=e(B);
+  const nm=r=>r==="W"?[a,b]:[b,a];
+  if(N.po)an.push({p:1,t:"Playoff game: win and advance, lose and the season is over."});
+  const po=gl.filter(x=>x.g.po);if(po.length)an.push({p:1.5,t:`Postseason history: ${a} is ${po.filter(x=>x.r==="W").length}-${po.filter(x=>x.r==="L").length} against ${b} in the playoffs.`});
+  if(!gl.length)an.push({p:2,t:`First meeting on record between ${a} and ${b}.`});
+  let ss=0,sr="";gl.forEach(x=>{if(x.r==="T"){ss=0;sr=""}else if(x.r===sr)ss++;else{sr=x.r;ss=1}});
+  if(ss>=3)an.push({p:2.5,t:`${nm(sr)[0]} has won ${ss} straight against ${nm(sr)[1]}.`});
+  const last=gl[gl.length-1];
+  if(last&&last.r!=="T"){const w=nm(last.r),mg=Math.abs(last.p-last.q),hi=Math.max(last.p,last.q),lo=Math.min(last.p,last.q);
+   an.push({p:3,t:`${w[1]} is looking for revenge after ${mg<5?"a heartbreaker":"a "+f2(mg)+"-point loss"} in ${last.g.season} Wk${last.g.week}.`});
+   an.push({p:3.5,t:`Last meeting: ${w[0]} beat ${w[1]} ${f2(hi)}–${f2(lo)} (${last.g.season} Wk${last.g.week}).`})}
+  const ra=rk[A],rb=rk[B];
+  const sg=SM&&SM.games.findIndex(g=>(g.a===A&&g.b===B)||(g.a===B&&g.b===A)),gg=sg>=0?SM.games[sg]:null,isG=gg&&sg===SM.gotw;
+  if(gg){const fl=gg.a===A,r=pcs;if(gg.lev>=3)an.push({p:2.9,t:`Playoff swing: ${a} goes from ${r(fl?gg.aB:gg.bB)}% to ${r(fl?gg.aA:gg.bA)}% to make it with a win; ${b} from ${r(fl?gg.bB:gg.aB)}% to ${r(fl?gg.bA:gg.aA)}%.`})}
+  if(!N.po&&ra&&rb){if(Math.min(ra,rb)<=2&&Math.abs(ra-rb)<=1)an.push({p:2,t:`Battle at the top: ${a} (${rc(A)}, ${ord(ra)}) meets ${b} (${rc(B)}, ${ord(rb)}).`});
+   else if(ra<=pot&&rb<=pot)an.push({p:3.2,t:`Playoff positioning: both teams are inside the top ${pot} right now.`});
+   else if((ra<=pot)!==(rb<=pot)){const i=ra<=pot?[a,b]:[b,a];an.push({p:3.2,t:`Bubble game: ${i[0]} holds a playoff spot while ${i[1]} is on the outside looking in.`})}
+   else an.push({p:3.2,t:`Both teams sit outside the top ${pot}, so this is a must-win to stay alive.`})}
+  [A,B].forEach(m=>{const s=st[m]||{s:0,t:""};if(s.t==="W"&&s.s>=3)an.push({p:4,t:`${e(m)} arrives on a ${s.s}-game winning streak.`});if(s.t==="L"&&s.s>=3)an.push({p:4,t:`${e(m)} has lost ${s.s} in a row and needs a spark.`});
+   if(pr[m]===1)an.push({p:5,t:`${e(m)} has the league’s top-scoring offense (${avg(m).toFixed(1)} per game).`});if(pr[m]===n&&n>2)an.push({p:5,t:`${e(m)} has the league’s lowest-scoring offense (${avg(m).toFixed(1)} per game).`})});
+  if(gl.length>1){const dec=gl.filter(x=>x.r!=="T"),big=[...dec].sort((x,y)=>Math.abs(y.p-y.q)-Math.abs(x.p-x.q))[0],cl=[...dec].sort((x,y)=>Math.abs(x.p-x.q)-Math.abs(y.p-y.q))[0];
+   if(big)an.push({p:7,t:`Biggest margin in the series: ${nm(big.r)[0]} by ${f2(Math.abs(big.p-big.q))} (${big.g.season} Wk${big.g.week}).`});
+   if(cl&&Math.abs(cl.p-cl.q)<10)an.push({p:6,t:`Closest finish: ${f2(Math.abs(cl.p-cl.q))} points (${cl.g.season} Wk${cl.g.week}).`})}
+  if(gp(A)&&gp(B)&&!an.some(x=>x.p===5))an.push({p:8,t:`${a} averages ${avg(A).toFixed(1)} points per game to ${b}’s ${avg(B).toFixed(1)}.`});
+  an.sort((x,y)=>x.p-y.p);const head=an[0]?an[0].t:`${a} vs ${b}`,bul=an.slice(1,4).map(x=>x.t);
+  bul.push(`Series: ${a} ${rec(h)} ${b}${gl.length?" over "+gl.length+" meeting"+(gl.length>1?"s":""):""}.`);
+  const tbl=gl.length?`<details><summary class=mu>All meetings (${gl.length})</summary><div class=scroll><table><tr><th class=l>Game</th><th>${a}</th><th>${b}</th><th>Result</th></tr>${[...gl].reverse().map(x=>`<tr><td class=l>${lbl(x.g)}${x.g.po?' <span class=tag>playoff</span>':""}</td><td>${f2(x.p)}</td><td>${f2(x.q)}</td><td><span class="chip ${x.r}">${x.r}</span></td></tr>`).join("")}</table></div></details>`:"";
+  return`<div class=card><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h2 style="margin:0;color:var(--tx)">${a} vs ${b}</h2><span class=tag>${isG?"👑 Game of the week":N.po?"Playoffs":"Week "+N.week}</span></div>
+   <div class=g><span>${a} <span class="mu sm">${rc(A)}${ra?" · "+ord(ra):""}</span></span><span>${form(D,A,5)}</span></div><div class=g><span>${b} <span class="mu sm">${rc(B)}${rb?" · "+ord(rb):""}</span></span><span>${form(D,B,5)}</span></div>
+   <div style="font-weight:600;margin:10px 0 4px">${head}</div><ul style="margin:0 0 8px 18px;padding:0" class="sm mu">${bul.map(t=>`<li>${t}</li>`).join("")}</ul>${tbl}</div>`}).join("");
+ return`<div class=card><h2>Week ${N.week} storylines · ${N.season}</h2><span class="mu sm">Written from every game on record between each pair. Refreshes with the weekly Sleeper update.</span></div><div class=grid>${cards}</div>`}
+
+const pcs=x=>x>=99.5?"99+":x<=0.5?"&lt;1":Math.round(x);
+function rngf(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function nrm(R){let u=0,v=0;while(!u)u=R();v=R();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function simulate(D,N,picks){
+ if(!N||N.po)return null;const key=N.season+"·sleeper",ps=N.ps,pot=N.pot,teams=D.mg.filter(m=>D.C[m].by[key]);if(teams.length<4)return null;
+ const base={};teams.forEach(m=>{const b=D.C[m].by[key];base[m]={w:b.w+b.t/2,pf:b.pf,gp:b.w+b.l+b.t}});
+ const pts=D.gs.filter(g=>g.src==="sleeper"&&g.season===N.season&&!g.po),all=[];pts.forEach(g=>{all.push(g.pa,g.pb)});
+ const lg=all.reduce((a,b)=>a+b,0)/(all.length||1),mu={};
+ teams.forEach(m=>{const g=base[m].gp;mu[m]=((g?base[m].pf/g:lg)*g+lg*4)/(g+4)});
+ let ss=0,nn=0;pts.forEach(g=>{[[g.A,g.pa],[g.B,g.pb]].forEach(([m,p])=>{if(mu[m]!==undefined){ss+=(p-mu[m])*(p-mu[m]);nn++}})});const sd=Math.sqrt(ss/(nn||1))||28;
+ const wk=[];let est=false;for(let w=N.week;w<ps;w++){const pr=S.sched&&S.sched[w]?S.sched[w].map(([a,b])=>[canon(a),canon(b)]).filter(([a,b])=>mu[a]!==undefined&&mu[b]!==undefined):null;if(pr&&pr.length)wk.push({w,pairs:pr});else{wk.push({w,pairs:null});est=true}}
+ const R=rngf(N.season*100+N.week),SIM=4000,cnt={},bye={},sw={},lc={};teams.forEach(m=>{cnt[m]=0;bye[m]=0;sw[m]=0;lc[m]=0});
+ const first=wk.length&&wk[0].pairs?wk[0].pairs:N.pairs.map(([a,b])=>[canon(a),canon(b)]).filter(([a,b])=>mu[a]!==undefined&&mu[b]!==undefined);
+ const cond=first.map(()=>({na:0,nb:0,aA:0,aB:0,bA:0,bB:0}));
+ for(let k=0;k<SIM;k++){const st={};teams.forEach(m=>st[m]={w:base[m].w,pf:base[m].pf});const r0=[];
+  wk.forEach((x,wi)=>{let pairs=x.pairs;if(!pairs){const sh=[...teams];for(let i=sh.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[sh[i],sh[j]]=[sh[j],sh[i]]}pairs=[];for(let i=0;i+1<sh.length;i+=2)pairs.push([sh[i],sh[i+1]])}
+   pairs.forEach(([a,b],gi)=>{let pa=mu[a]+sd*nrm(R),pb=mu[b]+sd*nrm(R);const f=picks&&picks[x.w+"|"+a+"|"+b];if(f==="a"&&pa<pb||f==="b"&&pb<pa)[pa,pb]=[pb,pa];st[a].pf+=pa;st[b].pf+=pb;if(pa>pb)st[a].w++;else st[b].w++;if(wi===0)r0[gi]=pa>pb})});
+  const order=[...teams].sort((a,b)=>st[b].w-st[a].w||st[b].pf-st[a].pf),made=new Set(order.slice(0,pot));
+  order.forEach((m,i)=>{sw[m]+=st[m].w;if(i<pot)cnt[m]++;if(i<2)bye[m]++;if(i===order.length-1)lc[m]++});
+  if(wk.length&&wk[0].pairs)first.forEach(([a,b],gi)=>{const c=cond[gi];if(r0[gi]){c.na++;if(made.has(a))c.aA++;if(made.has(b))c.bA++}else{c.nb++;if(made.has(a))c.aB++;if(made.has(b))c.bB++}})}
+ const rk={};[...teams].sort((a,b)=>base[b].w-base[a].w||base[b].pf-base[a].pf).forEach((m,i)=>rk[m]=i+1);
+ const rows=teams.map(m=>({m,rec:rec(D.C[m].by[key]),pct:cnt[m]/SIM*100,bye:bye[m]/SIM*100,last:lc[m]/SIM*100,pw:sw[m]/SIM,avg:base[m].gp?base[m].pf/base[m].gp:0,rank:rk[m]})).sort((a,b)=>b.pct-a.pct||b.pw-a.pw);
+ const pc=(x,y)=>y?x/y*100:0;
+ const games=first.map(([a,b],gi)=>{const c=cond[gi],h=D.H[a+"|"+b]||{g:[]},aA=pc(c.aA,c.na),aB=pc(c.aB,c.nb),bA=pc(c.bA,c.na),bB=pc(c.bB,c.nb);
+  const lev=wk.length&&wk[0].pairs?(aA-aB)+(bB-bA):0,last=h.g[h.g.length-1],top=rk[a]<=3&&rk[b]<=3;
+  return{a,b,aA,aB,bA,bB,lev,n:h.g.length,top,score:lev+Math.min(h.g.length,6)*2+(last&&Math.abs(last.p-last.q)<5?4:0)+(top?20:0)}});
+ let gi=-1,bs=-1;games.forEach((g,i)=>{if(g.score>bs){bs=g.score;gi=i}});
+ return{rows,games,gotw:gi,est,SIM,pot,weeksLeft:wk.length,week:N.week,sd,mu}}
+let SIMC={k:"",v:null};
+function getSim(N){if(!N)return null;const k=N.season+"-"+N.week+"-"+S.games.length+"-"+Object.keys(S.sched||{}).length;if(SIMC.k!==k){const sv=S.filter;S.filter="all";const D=data();S.filter=sv;SIMC={k,v:simulate(D,N)}}return SIMC.v}
+function plSets(D){const seasons={};D.mg.forEach(m=>Object.entries(D.C[m].by).forEach(([k,b])=>{(seasons[k]=seasons[k]||{season:b.season,src:b.src,t:[]}).t.push({m,w:b.w+b.t/2,pf:b.pf})}));
+ const PL={},done=[];Object.entries(seasons).forEach(([k,x])=>{const cur=S.next&&x.src==="sleeper"&&x.season===S.next.season;
+  const kk=x.season+x.src,truth=S.pl&&S.pl[kk];let set;if(truth)set=new Set(truth.map(canon));else{const n=S.po[kk]||(x.t.length>=10?6:4);set=new Set([...x.t].sort((a,b)=>b.w-a.w||b.pf-a.pf).slice(0,n).map(t=>t.m))}
+  PL[kk]=set;if(!cur)done.push(kk)});return{PL,done,seasons}}
+function playoffs(){const sv=S.filter;S.filter="all";const D=data();S.filter=sv;const N=S.next,SM=getSim(N),{PL,done}=plSets(D),e=esc;
+ const rows=D.mg.map(m=>{const c=D.C[m];let apps=0,played=0,last="";Object.values(c.by).forEach(b=>{const kk=b.season+b.src;if(!done.includes(kk))return;played++;if(PL[kk]&&PL[kk].has(m)){apps++;if(!last||b.season>+last)last=b.season}});
+  let w=0,l=0;c.hist.forEach(x=>{const kk=x.g.season+x.g.src;if(x.g.po&&PL[kk]&&PL[kk].has(m)&&PL[kk].has(x.o)&&done.includes(kk)){if(x.r==="W")w++;else if(x.r==="L")l++}});
+  return{m,apps,played,w,l,ch:c.ch,last}}).filter(r=>r.played);
+ rows.sort((a,b)=>b.apps-a.apps||b.ch-a.ch||(b.w-b.l)-(a.w-a.l));
+ const crown=(()=>{if(!SM||SM.gotw<0)return`<div class=card><h2>Game of the week</h2><span class=mu>${N&&N.po?"The regular season is over, so every game now has playoff stakes.":"Shows up once next week’s matchups are loaded."}</span></div>`;
+  const g=SM.games[SM.gotw],a=e(g.a),b=e(g.b),f=x=>Math.round(x);
+  return`<div class=card style="border-color:var(--hl)"><h2 style="color:var(--hl)">👑 Game of the week · Week ${SM.week}</h2><div class=big>${a} vs ${b}</div>
+  <div class=g><span class=mu>${a} makes the playoffs</span><b>${pcs(g.aB)}% with a loss → ${pcs(g.aA)}% with a win</b></div><div class=g><span class=mu>${b} makes the playoffs</span><b>${pcs(g.bB)}% with a loss → ${pcs(g.bA)}% with a win</b></div>
+  <div class=g><span class=mu>Combined swing</span><b>${f(g.lev)} points</b></div><div class=g><span class=mu>History</span><b>${g.n?g.n+" meeting"+(g.n>1?"s":""):"First meeting"}${g.top?" · top-3 clash":""}</b></div>
+  <div class="mu sm" style="margin-top:6px">Picked as the game that moves the playoff picture most, with a small boost for rivalry history and top-three clashes.</div></div>`})();
+ const race=SM?`<div class="card scroll"><h2>Playoff race · ${N.season}</h2><table><tr><th>#</th><th class=l>Manager</th><th>Record</th><th>Pts/game</th><th>Make it</th><th>Top-2 seed</th><th>Proj. wins</th></tr>${SM.rows.map((r,i)=>{const p=r.pct,tag=p>=99.5?'<span class=tag>in</span> ':p<=0.5?'<span class=tag>out</span> ':"";
+  return`<tr><td>${r.rank}</td><td class=l><b>${e(r.m)}</b></td><td>${r.rec}</td><td>${r.avg.toFixed(1)}</td><td>${tag}<span style="display:inline-block;width:${Math.round(p*0.6)}px;height:8px;background:var(--ac);border-radius:4px;vertical-align:middle;margin-right:6px"></span>${pcs(p)}%</td><td>${pcs(r.bye)}%</td><td>${r.pw.toFixed(1)}</td></tr>`}).join("")}</table>
+  <div class="mu sm" style="margin-top:6px">Top ${SM.pot} make the playoffs; ties break on wins, then points scored. Odds come from ${SM.SIM.toLocaleString()} simulated finishes using each team’s scoring average and the remaining schedule${SM.est?" (some future weeks aren’t loaded yet, so those matchups are random)":""}. They’re estimates, not guarantees.</div></div>`
+  :`<div class=card><h2>Playoff race</h2><span class=mu>${N&&N.po?"The regular season is over.":"Odds appear once the current season’s schedule is loaded."}</span></div>`;
+ const bl=[];
+ if(SM){const lock=SM.rows.filter(r=>r.pct>=99.5).map(r=>e(r.m)),bub=SM.rows.filter(r=>r.pct>5&&r.pct<95),out=SM.rows.filter(r=>r.pct<=5&&r.pct>0.5);
+  if(lock.length)bl.push(`Locked in (or close to it): ${lock.join(", ")}.`);
+  if(bub.length>1)bl.push(`The bubble: ${bub.map(r=>e(r.m)+" ("+Math.round(r.pct)+"%)").join(", ")} are fighting for the last spots.`);
+  if(out.length)bl.push(`Long shots: ${out.map(r=>e(r.m)+" ("+Math.max(1,Math.round(r.pct))+"%)").join(", ")}.`);
+  const top=[...SM.rows].sort((a,b)=>b.bye-a.bye)[0];if(top&&top.bye>1)bl.push(`Favorite for a top-2 seed: ${e(top.m)} at ${Math.round(top.bye)}%.`)}
+ const dc=[...D.ch].filter(c=>done.includes(c.season+c.src)).sort((a,b)=>b.season-a.season)[0];
+ if(dc){const r=SM&&SM.rows.find(x=>x.m===dc.m);bl.push(`Defending champion ${e(dc.m)} ${r?"is "+r.rec+" and "+Math.round(r.pct)+"% to make it back":"is chasing a repeat"}.`)}
+ const most=rows[0];if(most&&most.apps)bl.push(`Most playoff trips: ${rows.filter(r=>r.apps===most.apps).map(r=>e(r.m)).join(", ")} (${most.apps} of ${most.played} season${most.played>1?"s":""}).`);
+ const dry=rows.filter(r=>r.apps===0&&r.played>=1).map(r=>e(r.m));if(dry.length)bl.push(`Still waiting for a first playoff appearance: ${dry.join(", ")}.`);
+ const pr=rows.filter(r=>r.w+r.l>=2).sort((a,b)=>(b.w/(b.w+b.l))-(a.w/(a.w+a.l))||b.w-a.w)[0];if(pr)bl.push(`Best postseason record: ${e(pr.m)} at ${pr.w}-${pr.l}.`);
+ const story=`<div class=card><h2>Playoff storylines</h2><ul style="margin:0 0 0 18px;padding:0" class=sm>${bl.map(t=>`<li style="margin:3px 0">${t}</li>`).join("")||"<li class=mu>Nothing to report yet.</li>"}</ul></div>`;
+ const hist=`<div class="card scroll"><h2>All-time playoff history</h2><table><tr><th>#</th><th class=l>Manager</th><th>Trips</th><th>Seasons</th><th>Made it %</th><th>Playoff record</th><th>Win %</th><th>🏆</th><th>Last trip</th></tr>${rows.map((r,i)=>`<tr><td>${i+1}</td><td class=l><b>${e(r.m)}</b></td><td>${r.apps}</td><td>${r.played}</td><td>${Math.round(r.apps/r.played*100)}%</td><td>${r.w}-${r.l}</td><td>${r.w+r.l?Math.round(r.w/(r.w+r.l)*100)+"%":"—"}</td><td>${r.ch}</td><td>${r.last||"—"}</td></tr>`).join("")}</table>
+  <div class="mu sm" style="margin-top:6px">Counts completed seasons only (this year is in the race table above). Playoff games include every game between two playoff teams, such as the third-place game.</div></div>`;
+ return`${crown}${story}${race}${hist}`}
+// ---------- v7: all-play/luck, power, profiles, record book, what-if ----------
+const sk=g=>g.season+"|"+g.src,W=(g,i)=>g.ow?((g.ow==="a")===(i===0)?1:0):(i?(g.pb>g.pa?1:g.pb<g.pa?0:.5):(g.pa>g.pb?1:g.pa<g.pb?0:.5));
+const n1=n=>Number.isInteger(n)?String(n):n.toFixed(1),sg=n=>(n>0?"+":"")+n.toFixed(2),lab=k=>k.split("|")[0]+" "+(k.split("|")[1]==="espn"?"ESPN":"Sleeper");
+const isCur=k=>!!(S.next&&k===S.next.season+"|sleeper"),EMP=`<div class=card><span class=mu>No games loaded yet.</span></div>`;
+const T=(t,h,r,note,lc=1)=>`<div class="card scroll"><h2>${t}</h2><table><tr>${h.map((x,i)=>`<th${i<lc?' class=l':""}>${x}</th>`).join("")}</tr>${r.map(a=>`<tr>${a.map((c,i)=>`<td${i<lc?' class=l':""}>${c}</td>`).join("")}</tr>`).join("")}</table>${note?`<div class="mu sm" style="margin-top:6px">${note}</div>`:""}</div>`;
+const seasonsOf=D=>{const s={};D.gs.forEach(g=>s[sk(g)]=1);return Object.keys(s).sort((a,b)=>+b.split("|")[0]-+a.split("|")[0]||(a<b?-1:1))};
+function ysel(D,all){const ks=seasonsOf(D);if(S.ys==null||(S.ys==="all"?!all:!ks.includes(S.ys)))S.ys=ks[0];
+ return`<select id="ys">${all?`<option value="all"${S.ys==="all"?" selected":""}>All seasons</option>`:""}${ks.map(k=>`<option value="${k}"${S.ys===k?" selected":""}>${lab(k)}</option>`).join("")}</select>`}
+const msel=(id,l,v)=>`<select id="${id}">${l.map(m=>`<option${m===v?" selected":""}>${esc(m)}</option>`).join("")}</select>`;
+const weeks=gs=>{const w={};gs.forEach(g=>{(w[sk(g)+"|"+g.week]=w[sk(g)+"|"+g.week]||[]).push(g)});return Object.values(w)};
+function luckRows(D,key){const gs=D.gs.filter(g=>!g.po&&(key==="all"||sk(g)===key)),R={};const r=m=>R[m]=R[m]||{m,gp:0,aw:0,apw:0,apl:0,exp:0,pa:0,mw:0};
+ weeks(gs).forEach(wg=>{const sc=[];wg.forEach(g=>sc.push(g.pa,g.pb));const n=sc.length,s=[...sc].sort((a,b)=>a-b),md=n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2;
+  wg.forEach(g=>[[g.A,g.pa,g.pb,0],[g.B,g.pb,g.pa,1]].forEach(([m,p,q,i])=>{const x=r(m),w=W(g,i),ties=sc.filter(v=>v===p).length-1,aw=sc.filter(v=>p>v).length+ties/2,al=sc.filter(v=>p<v).length+ties/2;
+   x.gp++;x.pa+=q;x.aw+=w;x.apw+=aw;x.apl+=al;x.exp+=aw/(n-1);x.mw+=w+(p>md?1:p===md?.5:0)}))});return R}
+function luck(D){if(!D.gs.length)return EMP;const sel=ysel(D,1),R=Object.values(luckRows(D,S.ys)).sort((a,b)=>(b.aw-b.exp)-(a.aw-a.exp));if(!R.length)return EMP;
+ const rk={};[...R].sort((a,b)=>b.pa/b.gp-a.pa/a.gp).forEach((r,i)=>rk[r.m]=i+1);const lk=x=>{const v=x.aw-x.exp;return`<b style="color:${v>=0?"var(--ac)":"#f87171"}">${sg(v)}</b>`};
+ const hi=R[0],lo=R[R.length-1];
+ return`<div class=card><div class=row style="margin:0"><h2 style="margin:0">All-play &amp; luck</h2>${sel}</div><div class="mu sm" style="margin-top:8px">Regular season only. All-play = your record if you played every team every week. Luck = actual wins minus expected wins (all-play win % × games).${hi.aw-hi.exp>0?` Luckiest: <b>${esc(hi.m)}</b> (${sg(hi.aw-hi.exp)}). Most robbed: <b>${esc(lo.m)}</b> (${sg(lo.aw-lo.exp)}).`:""}</div></div>`+
+ T("Schedule luck",["Manager","Actual","All-play","Exp. W","Luck"],R.map(x=>[esc(x.m),n1(x.aw)+"-"+n1(x.gp-x.aw),n1(x.apw)+"-"+n1(x.apl),x.exp.toFixed(1),lk(x)]))+
+ T("Opponent strength (points against per game)",["#","Manager","PA/G","Faced"],[...R].sort((a,b)=>b.pa/b.gp-a.pa/a.gp).map((x,i)=>[i+1,esc(x.m),(x.pa/x.gp).toFixed(1),i<3?"toughest":i>=R.length-3?"easiest":""]),"Ranked from toughest weekly opponents to easiest.",2)+
+ T("Median standings",["#","Manager","Median W-L","Actual W-L"],[...R].sort((a,b)=>b.mw-a.mw||b.aw-a.aw).map((x,i)=>[i+1,esc(x.m),n1(x.mw)+"-"+n1(2*x.gp-x.mw),n1(x.aw)+"-"+n1(x.gp-x.aw)]),"Each week you also get a win or loss against the league median score (2 games per week).",2)}
+function eloAll(D){const E={},pk={},e=m=>E[m]===undefined?(E[m]=1500):E[m];
+ D.gs.forEach(g=>{const a=e(g.A),b=e(g.B),wa=W(g,0),ea=1/(1+Math.pow(10,(b-a)/400)),d=Math.abs(g.pa-g.pb),df=wa===1?a-b:wa===0?b-a:0,ch=12*Math.log(d+1)*2.2/(df*.001+2.2)*(wa-ea);
+  E[g.A]=a+ch;E[g.B]=b-ch;[g.A,g.B].forEach(m=>{if(!pk[m]||E[m]>pk[m].v)pk[m]={v:E[m],s:g.season,w:g.week}})});return{E,pk}}
+function powerAt(gs,wk){const T={};gs.filter(g=>g.week<=wk).forEach(g=>[[g.A,g.pa,0],[g.B,g.pb,1]].forEach(([m,p,i])=>(T[m]=T[m]||[]).push({w:W(g,i),p})));
+ const rows=Object.entries(T).map(([m,a])=>{const sm=(x,f)=>x.reduce((s,y)=>s+f(y),0),l=a.slice(-3);return{m,wp:sm(a,y=>y.w)/a.length,l3:sm(l,y=>y.w)/l.length,av:sm(a,y=>y.p)/a.length,w:sm(a,y=>y.w),n:a.length}});
+ const mx=Math.max(...rows.map(r=>r.av),1);rows.forEach(r=>r.s=100*(.5*r.wp+.3*r.l3+.2*r.av/mx));rows.sort((a,b)=>b.s-a.s);rows.forEach((r,i)=>r.rk=i+1);return rows}
+function power(D){if(!D.gs.length)return EMP;const {E,pk}=eloAll(D),sel=ysel(D,0),gs=D.gs.filter(g=>!g.po&&sk(g)===S.ys),wm=Math.max(0,...gs.map(g=>g.week));
+ const cur=powerAt(gs,wm),prev=wm>1?powerAt(gs,wm-1):[],pr={};prev.forEach(r=>pr[r.m]=r.rk);
+ const tr=r=>{if(!pr[r.m])return"—";const d=pr[r.m]-r.rk;return d>0?`<b style="color:var(--ac)">▲${d}</b>`:d<0?`<b style="color:#f87171">▼${-d}</b>`:"—"};
+ const SM=S.next&&S.ys===S.next.season+"|sleeper"?getSim(S.next):null,pot=(SM&&SM.pot)||S.po[S.ys.replace("|","")]||6,od={};if(SM)SM.rows.forEach(r=>od[r.m]=r.pct);
+ const tier=r=>SM&&od[r.m]!==undefined?(od[r.m]>=90?0:od[r.m]>=10?1:2):(r.rk<=pot?0:r.rk<=pot+2?1:2),TC=["#4ade80","#facc15","#f87171"],mxs=Math.max(...cur.map(r=>r.s),1);
+ const bars=`<div class=card><h2>Power rankings · Week ${wm}</h2>${cur.map(r=>`<div style="display:flex;align-items:center;gap:6px;margin:7px 0;font-size:13px"><span style="width:18px;text-align:right" class=mu>${r.rk}</span><span style="width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(sn(r.m))}</span><div style="flex:1;background:rgba(128,128,128,.15);border-radius:6px;overflow:hidden"><div style="width:${r.s/mxs*100}%;background:${TC[tier(r)]};height:16px;border-radius:6px;transform-origin:left;animation:bgrow .8s ease-out"></div></div><b style="width:30px;text-align:right">${r.s.toFixed(0)}</b><span style="width:34px">${tr(r)}</span></div>`).join("")}<div class="mu sm"><span style="color:#4ade80">●</span> ${SM?"playoff lock (90%+ odds)":"inside the playoff line"} &nbsp; <span style="color:#facc15">●</span> bubble &nbsp; <span style="color:#f87171">●</span> ${SM?"basement (under 10%)":"outside the line"}</div></div>`;
+ const cl=Object.keys(E).sort((a,b)=>E[b]-E[a]),pl=Object.keys(pk).sort((a,b)=>pk[b].v-pk[a].v);
+ return`<div class=card><div class=row style="margin:0"><h2 style="margin:0">Weekly power index</h2>${sel}</div><div class="mu sm" style="margin-top:8px">Score = 50% win %, 30% last-3-game form, 20% scoring average (scaled to the league’s best), through week ${wm}. Trend compares rank with the week before.</div></div>`+
+ bars+T("Power index · Week "+wm,["#","Manager","Score","Trend","Record","Last 3","Avg pts"],cur.map(r=>[r.rk,esc(r.m),r.s.toFixed(1),tr(r),n1(r.w)+"-"+n1(r.n-r.w),Math.round(r.l3*100)+"%",r.av.toFixed(1)]),"",2)+
+ T("Elo ratings (current)",["#","Manager","Elo","Peak"],cl.map((m,i)=>[i+1,esc(m),Math.round(E[m]),Math.round(pk[m].v)]),"Everyone starts at 1500 and moves after every game (playoffs included), scaled by margin of victory and opponent strength.",2)+
+ T("Highest peak rating ever",["#","Manager","Peak Elo","When"],pl.map((m,i)=>[i+1,esc(m),Math.round(pk[m].v),pk[m].s+" Wk"+pk[m].w]),"",2)}
+function profile(D){if(!D.mg.length)return EMP;if(!D.mg.includes(S.pm))S.pm=D.mg.includes(S.h1)?S.h1:D.mg[0];const m=S.pm,c=D.C[m];
+ const ss=Object.values(c.by).filter(b=>!isCur(b.season+"|"+b.src)).map(b=>{const k=b.season+"·"+b.src,al=Object.values(D.C).filter(x=>x.by[k]).map(x=>({m:x.m,b:x.by[k]})).sort((p,q)=>(q.b.w+q.b.t/2)-(p.b.w+p.b.t/2)||q.b.pf-p.b.pf);return{...b,rank:al.findIndex(x=>x.m===m)+1,n:al.length}}).sort((a,b)=>a.season-b.season);
+ const best=[...ss].sort((a,b)=>b.pf-a.pf)[0],worst=[...ss].sort((a,b)=>b.rank/b.n-a.rank/a.n||a.pf-b.pf)[0],avg=ss.length?ss.reduce((s,x)=>s+x.rank,0)/ss.length:0;
+ const op=D.mg.filter(o=>o!==m).map(o=>{const h=D.H[m+"|"+o];return h?{o,w:h.w,l:h.l,t:h.t,n:h.w+h.l+h.t}:null}).filter(Boolean),pc=x=>(x.w+x.t/2)/x.n;
+ const nem=op.filter(x=>x.n>=3).sort((a,b)=>pc(a)-pc(b)||b.l-a.l)[0],fv=[...op].sort((a,b)=>b.w-a.w||pc(b)-pc(a))[0],rc=x=>x.w+"-"+x.l+(x.t?"-"+x.t:"");
+ const cl=c.hist.filter(x=>!x.g.agg&&Math.abs(x.p-x.q)<5),cw=cl.filter(x=>x.r==="W").length,wp=a=>a.length?Math.round(a.filter(x=>x.r==="W").length/a.length*100)+"% ("+a.filter(x=>x.r==="W").length+"-"+a.filter(x=>x.r==="L").length+")":"—";
+ const row=(k,v)=>`<div class=g><span class=mu>${k}</span><b>${v}</b></div>`;
+ return`<div class=card><div class=row style="margin:0"><h2 style="margin:0">Manager profile</h2>${msel("pm",D.mg,m)}</div><div class="mu sm" style="margin-top:6px">${rec(c)} regular season · ${c.ch} title${c.ch===1?"":"s"} · ${f2(c.pf/Math.max(1,c.w+c.l+c.t))} pts/game</div></div>`+
+ `<div class=card><h2>Seasons</h2>${ss.length?row("Highest-scoring season",best.season+" "+(best.src==="espn"?"ESPN":"Sleeper")+" · "+f2(best.pf)+" pts")+row("Worst finish",worst.season+" · "+worst.rank+" of "+worst.n+" ("+worst.w+"-"+worst.l+")")+row("Average final standing",avg.toFixed(1)):`<span class=mu>No completed seasons.</span>`}<div class="mu sm" style="margin-top:6px">Finish = regular-season standing (wins, then points). Current season excluded.</div></div>`+
+ `<div class=card><h2>Rivals (min. 3 meetings)</h2>${row("Nemesis",nem?esc(nem.o)+" · "+rc(nem):"—")}${row("Favorite victim",fv&&fv.w?esc(fv.o)+" · "+rc(fv):"—")}</div>`+
+ `<div class=card><h2>Clutch factor</h2>${row("Games decided by under 5",cl.length?cw+"-"+cl.filter(x=>x.r==="L").length+" ("+Math.round(cw/cl.length*100)+"%)":"—")}${row("Playoff win %",wp(c.hist.filter(x=>x.g.po)))}${row("Regular-season win %",wp(c.hist.filter(x=>!x.g.po)))}</div>`}
+function vault(D){const R=[];D.gs.forEach(g=>{if(g.agg)return;R.push({m:g.A,s:g.pa,o:g.B,os:g.pb,g},{m:g.B,s:g.pb,o:g.A,os:g.pa,g})});if(!R.length)return EMP;
+ const L=(t,a,h,v)=>T(t,["#","Game","When",h],a.slice(0,10).map((r,i)=>[i+1,`${esc(r.m)} ${f2(r.s)} vs ${esc(r.o)} ${f2(r.os)}`,r.g.season+" Wk"+r.g.week,v(r)]),"",2),W2=R.filter(r=>r.s>r.os&&!r.g.ow),Lo=R.filter(r=>r.s<r.os&&!r.g.ow),by=(a,f)=>[...a].sort((x,y)=>f(x)-f(y));
+ const S2={};R.filter(r=>!r.g.po).forEach(r=>(S2[r.m]=S2[r.m]||[]).push(r.s));
+ const sd=Object.entries(S2).filter(([,a])=>a.length>=8).map(([m,a])=>{const av=a.reduce((s,x)=>s+x,0)/a.length;return{m,n:a.length,av,sd:Math.sqrt(a.reduce((s,x)=>s+(x-av)*(x-av),0)/a.length)}}).sort((a,b)=>a.sd-b.sd);
+ return L("Highest single-week scores",by(R,r=>-r.s),"Score",r=>f2(r.s))+L("Hall of Shame · lowest scores",by(R,r=>r.s),"Score",r=>f2(r.s))+L("Closest finishes",by(W2,r=>r.s-r.os),"Margin",r=>f2(r.s-r.os))+L("Biggest blowouts",by(W2,r=>-(r.s-r.os)),"Margin",r=>f2(r.s-r.os))+
+ L("Unlucky losses · highest score in a loss",by(Lo,r=>-r.s),"Score",r=>f2(r.s))+L("Lucky wins · lowest score in a win",by(W2,r=>r.s),"Score",r=>f2(r.s))+
+ (sd.length?`<div class=card><h2>Consistency awards</h2><div class=g><span class=mu>🎯 Mr. Consistent</span><b>${esc(sd[0].m)} · σ ${sd[0].sd.toFixed(1)}</b></div><div class=g><span class=mu>🎲 Wildcard</span><b>${esc(sd[sd.length-1].m)} · σ ${sd[sd.length-1].sd.toFixed(1)}</b></div></div>`+T("Weekly scoring spread",["Manager","Games","Avg","Std dev"],sd.map(x=>[esc(x.m),x.n,x.av.toFixed(1),x.sd.toFixed(1)]),"Regular season, managers with 8+ games. Lower std dev = steadier scoring.")
+  :"")}
+function whatif(D){if(!D.gs.length)return EMP;const sel=ysel(D,0),SC={},TM=new Set();
+ D.gs.filter(g=>!g.po&&sk(g)===S.ys).forEach(g=>{const w=SC[g.week]=SC[g.week]||{};w[g.A]={o:g.B,p:g.pa,i:0,g};w[g.B]={o:g.A,p:g.pb,i:1,g};TM.add(g.A);TM.add(g.B)});
+ const tm=[...TM].sort();if(tm.length<2)return EMP;if(!tm.includes(S.wa))S.wa=tm[0];if(!tm.includes(S.wb)||S.wb===S.wa)S.wb=tm.find(t=>t!==S.wa);
+ const rec=(x,y)=>{let w=0,l=0,t=0,pf=0;Object.values(SC).forEach(wk=>{const mx=wk[x],my=wk[y];if(!mx||!my)return;let r;pf+=mx.p;
+  if(x===y)r=W(mx.g,mx.i);else{const op=my.o===x?my.p:(wk[my.o]||{}).p;if(op==null)return;r=mx.p>op?1:mx.p<op?0:.5}r===1?w++:r===0?l++:t++});return{w,l,t,pf}};
+ const act={};tm.forEach(m=>act[m]=rec(m,m));const line=S.po[S.ys.replace("|","")]||6,rs=r=>r.w+"-"+r.l+(r.t?"-"+r.t:""),sc=r=>r.w+r.t/2;
+ const seed=(m,r)=>1+tm.filter(o=>o!==m&&(sc(act[o])>sc(r)||sc(act[o])===sc(r)&&act[o].pf>r.pf)).length;
+ const ra=act[S.wa],rb=rec(S.wa,S.wb),sa=seed(S.wa,ra),sb=seed(S.wa,rb),pl=s=>s<=line?"in the playoffs":"misses the playoffs";
+ const mat=tm.map(x=>`<tr><td class=l><b>${esc(x)}</b></td>${tm.map(y=>{const r=rec(x,y),n=r.w+r.l+r.t;return`<td style="text-align:center;color:#fff;background:hsl(${n?Math.round(r.w/n*120):60},50%,${x===y?"22%":"30%"});${x===y?"outline:2px solid var(--hl);outline-offset:-2px":""}">${rs(r)}</td>`}).join("")}</tr>`).join("");
+ return`<div class=card><div class=row style="margin:0"><h2 style="margin:0">Schedule swapper</h2>${sel}</div><div class=row style="margin-top:10px">${msel("wa",tm,S.wa)} <span class=mu>plays</span> ${msel("wb",tm,S.wb)}<span class=mu>’s schedule</span></div>
+ <div class=g><span class=mu>${esc(S.wa)} actual</span><b>${rs(ra)} · seed ${sa} (${pl(sa)})</b></div><div class=g><span class=mu>With ${esc(S.wb)}’s schedule</span><b>${rs(rb)} · seed ${sb} (${pl(sb)})</b></div>
+ <div class="mu sm" style="margin-top:6px">Your weekly scores against ${esc(S.wb)}’s opponents (when that opponent is you, you face ${esc(S.wb)}). Seed assumes everyone else’s record stays as played; top ${line} make it. Regular season only.</div></div>
+ <div class="card scroll"><h2>Full matrix · ${lab(S.ys)}</h2><table><tr><th class=l>Row’s scores ↓ / schedule →</th>${tm.map(y=>`<th>${esc(y)}</th>`).join("")}</tr>${mat}</table><div class="mu sm" style="margin-top:6px">Each cell: the row manager’s record against the column manager’s schedule. Gold outline = actual record.</div></div>`}
+// ---------- v8: hub home, eras, sacko, newsletter ----------
+const TILES=[["wk","🗓","Weekly","Scoreboard by week"],["po","🏆","Playoffs","Race, odds and history"],["scenarios","🎛","Scenarios","Pick winners, watch the seeds move"],["story","📖","Storylines","Matchup previews and narratives"],["rec","📊","All-time","Career standings"],["h2h","⚔️","Head-to-head","Rivalry matrix and deep dive"],["eras","👑","Eras & Rivals","Rivalries, dynasties, droughts"],["vault","📚","Record Book","Top 10 lists and awards"],["hof","🏛","Hall of Fame","Milestones, champions, legends"],["atm","🥇","All-Time Teams","1st, 2nd, 3rd teams and position G.O.A.T.s"],["profile","👤","Profiles","Career dossier for any manager"],["luck","🎲","All-Play","Schedule luck, median standings"],["power","⚡","Power","Elo and weekly power index"],["charts","📈","Charts","Race chart and box plots"],["str","🔥","Streaks","Win and loss streaks"],["sacko","🚽","Sacko","Last-place odds and basement"],["whatif","🔀","What-If","Swap schedules"],["map","🔗","Manager mapper","Link ESPN and Sleeper names"]];
+function hub(D){return ringCase(D)+hub0(D)}
+function hub0(D){const ch=[...D.ch].sort((x,y)=>y.season-x.season)[0];
+ return`<div class=card><h2>League home base</h2><span class=mu>${D.gs.length} games · ${new Set(D.gs.map(sk)).size} seasons loaded${ch?` · Defending champ: <b>${esc(ch.m)}</b> (${ch.season})`:""}</span></div><div class=grid>${TILES.map(([k,i,t,d])=>`<div class=card data-t="${k}" style="cursor:pointer;margin:0"><div class=big>${i}</div><b>${t}</b><div class="mu sm">${d}</div></div>`).join("")}</div>`}
+// To start a new era, add {n:"Name",from:YEAR} below. Each era runs until the next one begins.
+const ERAS=[{n:"All Time",from:0}];
+function eras(D){if(!D.gs.length)return EMP;const {PL,done}=plSets(D),rv=[];
+ D.mg.forEach((a,i)=>D.mg.slice(i+1).forEach(b=>{const h=D.H[a+"|"+b];if(!h)return;const n=h.w+h.l+h.t;if(n<3)return;
+  const am=h.g.reduce((s,x)=>s+Math.abs(x.p-x.q),0)/n,po=h.g.filter(x=>x.g.po).length,cl=1-Math.abs(h.w-h.l)/n,lt=h.g[h.g.length-1];let st=0;for(let j=h.g.length-1;j>=0&&h.g[j].r===lt.r;j--)st++;
+  rv.push({a,b,h,n,am,po,st,lt,s:2*n+15*cl+10/(1+am/15)+5*po})}));
+ rv.sort((x,y)=>y.s-x.s);const top=rv.slice(0,10);
+ const at=r=>`data-t="h2h" data-a="${esc(r.a)}" data-b="${esc(r.b)}" style="cursor:pointer"`;
+ const rt=`<div class="card scroll"><h2>Top 10 rivalries</h2><table><tr><th>#</th><th class=l>Matchup</th><th>Series</th><th>Games</th><th>Avg margin</th><th>Playoff</th><th>Score</th></tr>${top.map((r,i)=>`<tr ${at(r)}><td>${i+1}</td><td class=l><b>${esc(r.a)}</b> vs <b>${esc(r.b)}</b></td><td>${rec(r.h)}</td><td>${r.n}</td><td>${r.am.toFixed(1)}</td><td>${r.po}</td><td>${r.s.toFixed(0)}</td></tr>`).join("")||"<tr><td colspan=7 class=mu>Needs pairs with 3+ meetings.</td></tr>"}</table><div class="mu sm" style="margin-top:6px">Score rewards more meetings, an even series, small average margins and playoff games. Tap a row for the head-to-head.</div></div>`;
+  const E=[...ERAS].sort((x,y)=>x.from-y.from),mxs=Math.max(...D.gs.map(g=>g.season));
+ const era=E.map((e,i)=>{const to=i+1<E.length?E[i+1].from-1:Infinity,gs=D.gs.filter(g=>g.season>=e.from&&g.season<=to);if(!gs.length)return null;const ss=gs.map(g=>g.season),t={},cn={};
+  gs.filter(g=>!g.po).forEach(g=>[[g.A,g.pa,0],[g.B,g.pb,1]].forEach(([m,p,k])=>{const o=t[m]=t[m]||{w:0,n:0};o.w+=W(g,k);o.n++}));
+  D.ch.filter(c=>c.season>=e.from&&c.season<=to).forEach(c=>cn[c.m]=(cn[c.m]||0)+1);const win=Object.entries(t).filter(([,o])=>o.n>=14).sort((x,y)=>y[1].w/y[1].n-x[1].w/x[1].n)[0];
+  return{n:e.n,a:Math.min(...ss),b:Math.max(...ss),cur:Math.max(...ss)===mxs,cn,win}}).filter(Boolean);
+ const dy=era.map(e=>`<div class=card><h2>${esc(e.n)} · ${e.a}–${e.cur?"Current":e.b}</h2><div class=g><span class=mu>Champions</span><b>${Object.entries(e.cn).sort((x,y)=>y[1]-x[1]).map(([m,n])=>esc(m)+(n>1?" ×"+n:"")).join(", ")||"—"}</b></div><div class=g><span class=mu>Winningest (reg. season)</span><b>${e.win?esc(e.win[0])+" · "+Math.round(e.win[1].w/e.win[1].n*100)+"%":"—"}</b></div></div>`).join("");
+ const last=Math.max(0,...done.map(k=>+k.slice(0,4))),dr=D.mg.map(m=>{const ks=Object.values(D.C[m].by).map(b=>b.season+b.src).filter(k=>done.includes(k)).sort();if(!ks.length)return null;
+  const tt=D.ch.filter(x=>x.m===m).map(x=>x.season),lt=tt.length?Math.max(...tt):null,pk=ks.filter(k=>PL[k]&&PL[k].has(m)).map(k=>+k.slice(0,4));let st=0;for(let i=ks.length-1;i>=0&&PL[ks[i]]&&PL[ks[i]].has(m);i--)st++;
+  return{m,t:tt.length,lt,lp:pk.length?Math.max(...pk):null,st,dr:lt==null?ks.length:last-lt}}).filter(Boolean).sort((x,y)=>y.dr-x.dr||y.st-x.st);
+ return rt+`<h2 style="margin:16px 0 8px;font-size:15px;text-transform:uppercase;letter-spacing:1px;color:var(--mu)">Dynasty timeline</h2>`+dy+T("Title droughts & contender windows",["Manager","🏆","Last title","Drought","Last playoffs","Contender streak"],dr.map(x=>[esc(x.m),x.t,x.lt||"never",x.dr+(x.lt==null?" seasons, no title":x.dr===0?" (defending)":" seasons"),x.lp||"never",x.st>=2?"🔥 "+x.st+" straight":x.st===1?"made it last year":"missed last year"]),"Drought counts completed seasons since the last title. Contender streak = consecutive playoff trips through the latest completed season.")}
+function sacko0(D){if(!D.gs.length)return EMP;const {done}=plSets(D),SM=getSim(S.next),seas={};
+ D.mg.forEach(m=>Object.entries(D.C[m].by).forEach(([k,b])=>{if(done.includes(b.season+b.src))(seas[k]=seas[k]||[]).push({m,w:b.w+b.t/2,pf:b.pf,s:b.season,src:b.src,rc:rec(b)})}));
+ const lp={},hist=Object.values(seas).map(a=>{a.sort((x,y)=>x.w-y.w||x.pf-y.pf);lp[a[0].m]=(lp[a[0].m]||0)+1;return a[0]}).sort((x,y)=>y.s-x.s),u={},d={};
+ D.gs.forEach(g=>{if(g.agg)return;if(g.pa<100)u[g.A]=(u[g.A]||0)+1;if(g.pb<100)u[g.B]=(u[g.B]||0)+1});
+ weeks(D.gs.filter(g=>!g.po&&!g.agg)).forEach(wg=>{const l=wg.flatMap(g=>[{m:g.A,s:g.pa},{m:g.B,s:g.pb}]).sort((x,y)=>x.s-y.s)[0];d[l.m]=(d[l.m]||0)+1});
+ const bs=D.mg.map(m=>({m,l:lp[m]||0,u:u[m]||0,d:d[m]||0})).filter(x=>x.l||x.u||x.d).sort((x,y)=>y.l-x.l||y.d-x.d||y.u-x.u);
+ const od=SM?T("Last-place odds · "+S.next.season,["#","Manager","Record","Finishes last"],[...SM.rows].sort((x,y)=>y.last-x.last).map((r,i)=>[i+1,esc(r.m),r.rec,`<span style="display:inline-block;width:${Math.round(r.last*.6)}px;height:8px;background:#f87171;border-radius:4px;vertical-align:middle;margin-right:6px"></span>${pcs(r.last)}%`]),`From ${SM.SIM.toLocaleString()} simulated finishes (same engine as the playoff odds).`,2):`<div class=card><h2>Last-place odds</h2><span class=mu>Appear once the current season’s schedule is loaded.</span></div>`;
+ return od+T("All-time basement standings",["Manager","Last places","Sub-100 games","Dunce caps"],bs.map(x=>[esc(x.m),x.l,x.u,x.d]),"Dunce cap = lowest score of the week (regular season). Last place = worst regular-season record in a completed season.")+T("Sacko history (regular-season last place)",["Season","Manager","Record"],hist.map(x=>[x.s+" "+(x.src==="espn"?"ESPN":"Sleeper"),esc(x.m),x.rc]),"Consolation-bracket (Toilet Bowl) winners need Sleeper’s losers_bracket pull, which isn’t loaded yet.")}
+// ---------- v12: Hall of Fame ----------
+const MILES=[["Career points",c=>c.pf,10000],["Regular-season wins",c=>c.w+c.t/2,50],["Championships",c=>c.ch,3],["Games played",c=>c.gp,100],["Playoff wins",c=>c.pw,10],["Peak Elo",c=>c.elo,1600],["Single-season points",c=>c.ssp,2000],["Single-week points",c=>c.swp,200]],pn=id=>(S.pn&&S.pn[id])||(S.pe&&S.pe[id])||"Player "+id;
+function hofCtl(P){const ys=[...new Set(P.map(x=>x.season))].sort((a,b)=>b-a),ts=[...new Set(P.map(x=>canon(x.own)))].sort();
+ return`<div class=card><h2>Player Hall of Fame</h2><div class=row><input id="hq" placeholder="Search players" value="${esc(S.hq||"")}"><select id="hv"><option value="s"${S.hv!=="c"?" selected":""}>By season</option><option value="c"${S.hv==="c"?" selected":""}>Career totals</option><option value="g"${S.hv==="g"?" selected":""}>Single game</option></select><select id="hs"><option value="all">All seasons</option>${ys.map(y=>`<option${String(y)===String(S.hs)?" selected":""}>${y}</option>`).join("")}</select><select id="ht"><option value="all">All teams</option>${ts.map(t=>`<option${t===S.ht?" selected":""}>${esc(t)}</option>`).join("")}</select></div><div class="mu sm">Every player who started for a fantasy team, ranked by points scored in that manager’s lineup (your league’s scoring). Season view credits each player to the fantasy team he ended the season on, with points summed across every team he played for. Lists show the top 20. Covers Sleeper seasons, plus ESPN seasons once their weekly rosters load.</div></div>`}
+const HOF_LIMIT=20,POS_ESPN={1:"QB",2:"RB",3:"WR",4:"TE",5:"K",16:"DEF"};
+function hofRows(){const q=(S.hq||"").toLowerCase(),c=S.hv==="c",g1=S.hv==="g",se=!c&&!g1,tm=S.ht!=null&&S.ht!=="all"?S.ht:null,A={},
+ P=(S.pp||[]).filter(x=>(S.hs==null||S.hs==="all"||String(x.season)===S.hs)&&(se||!tm||canon(x.own)===tm)&&(!q||pn(x.id).toLowerCase().includes(q)));
+ // Season view: one row per player per season, credited to the fantasy team he ENDED the season on (his latest start),
+ // with points summed across every team he started for that year. The team filter applies to that ending team.
+ P.forEach(x=>{const k=g1?x.season+"|"+x.week+"|"+x.id+"|"+x.own:c?x.id:x.season+"|"+x.id,a=A[k]=A[k]||{id:x.id,season:x.season,week:x.week,own:{},ss:new Set(),n:0,pts:0,lw:-1,end:x.own};
+  a.n++;a.pts+=x.pts;a.own[x.own]=(a.own[x.own]||0)+x.pts;a.ss.add(x.season);if(x.week>=a.lw){a.lw=x.week;a.end=x.own}});
+ const all=Object.values(A).filter(a=>!se||!tm||canon(a.end)===tm).sort((a,b)=>b.pts-a.pts),R=all.slice(0,HOF_LIMIT);
+ return`<table><tr><th>#</th><th class=l>Player</th><th class=l>Fantasy team${c?"(s)":se?" (ended on)":""}</th><th>${g1?"Week":c?"Seasons":"Season"}</th><th>Starts</th><th>Pts</th></tr>${R.map((a,i)=>`<tr><td>${i+1}</td><td class=l>${esc(pn(a.id))}</td><td class=l>${se?esc(canon(a.end))+(Object.keys(a.own).length>1?` <span class=tag>${Object.keys(a.own).length} teams</span>`:""):Object.entries(a.own).sort((x,y)=>y[1]-x[1]).map(([k])=>esc(canon(k))).join(", ")}</td><td>${g1?a.season+" Wk"+a.week:c?a.ss.size:a.season}</td><td>${a.n}</td><td>${f2(a.pts)}</td></tr>`).join("")||"<tr><td colspan=6 class=mu>No players match.</td></tr>"}</table><div class="mu sm" style="margin-top:6px">Top ${R.length} of ${all.length.toLocaleString()} ${g1?"player-games":c?"players":"player-seasons"}</div>`}
+document.addEventListener("input",e=>{if(e.target.id==="hq"){S.hq=e.target.value;$("hft").innerHTML=hofRows()}});
+document.addEventListener("change",e=>{const t=e.target;if(t.id==="hv"||t.id==="hs"||t.id==="ht"){S[t.id]=t.value;$("hft").innerHTML=hofRows()}});
+async function loadEspnPlayers(){let n=0;for(const y of Object.keys(S.en||{}).map(Number).sort()){const nm=S.en[y];S.pp=(S.pp||[]).filter(r=>!(r.src==="espn"&&r.season===y));
+  const rs=await Promise.allSettled(Array.from({length:17},(_,i)=>J(`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${y}/segments/0/leagues/${ESPN_ID}?scoringPeriodId=${i+1}&view=mRoster`)));
+  rs.forEach((r,i)=>{if(r.status!=="fulfilled")return;(r.value.teams||[]).forEach(t=>((t.roster||{}).entries||[]).forEach(en=>{const pe=en.playerPoolEntry||{},p=pe.player||{},pts=pe.appliedStatTotal;if(en.lineupSlotId>=20||typeof pts!=="number"||!pts||!nm[t.id])return;
+   S.pe=S.pe||{};S.pe["e"+p.id]=p.fullName||"Player "+p.id;S.pos=S.pos||{};if(POS_ESPN[p.defaultPositionId])S.pos["e"+p.id]=POS_ESPN[p.defaultPositionId];S.pp.push({src:"espn",season:y,week:i+1,id:"e"+p.id,own:nm[t.id],pts});n++}))})}
+ if(n)status("ESPN players: "+n+" starter-weeks loaded")}
+async function loadNames(){const ids=new Set((S.pp||[]).map(x=>x.id).concat([...(S.xid||[])]));S.pn=S.pn||{};const need=[...ids].filter(id=>id&&!S.pn[id]&&!/^e\d/.test(id));if(!need.length)return;try{S._db=S._db||await J("https://api.sleeper.app/v1/players/nfl");need.forEach(id=>{const p=S._db[id];if(p){S.pn[id]=p.full_name||((p.first_name||"")+" "+(p.last_name||"")).trim()||id;const ps=p.position==="FB"?"RB":p.position;if(ps){S.pos=S.pos||{};S.pos[id]=ps}}})}catch(e){}}
+// ---------- All-Time Teams + position GOATs ----------
+// Lineup slots used to build each team. Edit the counts to match your league (e.g. ["WR",3]).
+const ATM_SLOTS=[["QB",1],["RB",2],["WR",2],["TE",1],["K",1],["DEF",1]],ATM_NAME={QB:"Quarterback",RB:"Running Back",WR:"Wide Receiver",TE:"Tight End",K:"Kicker",DEF:"Defense"},ATM_IC={QB:"🎯",RB:"🏃",WR:"🙌",TE:"🧲",K:"🦵",DEF:"🛡"};
+function atm(D){return atm0(D)+phSection(D)}
+function atm0(D){const peak=S.am==="s",P=(S.pp||[]).filter(x=>S.filter==="all"||x.src===S.filter),pos=S.pos||{},B={},miss=new Set();
+ P.forEach(x=>{const p=pos[x.id];if(!p){miss.add(x.id);return}const nm=pn(x.id),k=p+"|"+(/^Player /.test(nm)?x.id:nm.toLowerCase()),
+  a=B[k]=B[k]||{name:nm,pos:p,pts:0,n:0,y:{},own:{}},y=a.y[x.season]=a.y[x.season]||{pts:0,n:0,w:-1,end:x.own};
+  a.pts+=x.pts;a.n++;a.own[x.own]=(a.own[x.own]||0)+x.pts;y.pts+=x.pts;y.n++;if(x.week>=y.w){y.w=x.week;y.end=x.own}});
+ const ctl=`<div class=card><div class=row style="margin:0"><h2 style="margin:0">All-Time Teams</h2><select id="am"><option value="c"${peak?"":" selected"}>Career points</option><option value="s"${peak?" selected":""}>Best single season</option></select></div><div class="mu sm" style="margin-top:6px">Players ranked by points scored in a fantasy lineup (your league’s scoring), merged across ESPN and Sleeper and across every team they played for. First Team = the top finishers at each position, Second Team = the next group, Third Team = the next. The #1 player at each position is its G.O.A.T. Lineup: ${ATM_SLOTS.map(([p,k])=>k+" "+p).join(" · ")}. Follows the league filter at the top.</div></div>`;
+ if(!Object.keys(B).length)return ctl+`<div class=card><span class=mu>Needs player-level scoring and positions. They load from the live Sleeper and ESPN pulls — press “Reload live” (positions come from Sleeper’s player list and ESPN’s rosters).</span></div>`;
+ const E=Object.values(B).map(a=>{if(peak){const[yr,b]=Object.entries(a.y).sort((p,q)=>q[1].pts-p[1].pts)[0];return{name:a.name,pos:a.pos,pts:b.pts,sub:yr+" · "+b.n+(b.n>1?" starts":" start"),mgr:canon(b.end)}}
+  const ys=Object.keys(a.y).length,top=Object.entries(a.own).sort((p,q)=>q[1]-p[1])[0][0];return{name:a.name,pos:a.pos,pts:a.pts,sub:ys+" season"+(ys>1?"s":"")+" · "+a.n+(a.n>1?" starts":" start"),mgr:canon(top)}}),by={};
+ E.forEach(e=>(by[e.pos]=by[e.pos]||[]).push(e));Object.values(by).forEach(l=>l.sort((x,y)=>y.pts-x.pts));
+ const goat=ATM_SLOTS.map(([ps])=>{const e=(by[ps]||[])[0];return`<div class=card style="margin:0;border-color:var(--hl)"><div class="mu sm">${ATM_IC[ps]} ${ATM_NAME[ps]} · G.O.A.T.</div>${e?`<div class=big style="font-size:20px">👑 ${esc(e.name)}</div><div class=sm><b class=hl>${f2(e.pts)} pts</b> · ${esc(e.sub)}</div><div class="mu sm">${peak?"Ended that season with":"Most points for"} ${esc(e.mgr)}</div>`:`<span class=mu>No data</span>`}</div>`}).join("");
+ const T=[0,1,2].map(t=>ATM_SLOTS.flatMap(([ps,k])=>(by[ps]||[]).slice(t*k,(t+1)*k).map((e,i)=>({...e,slot:k>1?ps+(i+1):ps})))),med=["🥇","🥈","🥉"],tn=["First Team","Second Team","Third Team"],
+ row=e=>`<div class=g><span><span class=tag>${e.slot}</span> <b>${esc(e.name)}</b><div class="mu sm">${esc(e.sub)} · ${esc(e.mgr)}</div></span><b>${f2(e.pts)}</b></div>`,
+ teams=T.map((r,i)=>`<div class=card style="margin:0"><h2 style="color:${i?"var(--tx)":"var(--hl)"}">${med[i]} ${tn[i]}</h2>${r.map(row).join("")||"<span class=mu>Not enough players.</span>"}<div class=g style="border-top:1px solid var(--bd);margin-top:4px;padding-top:8px"><span class=mu>Team total</span><b>${f2(r.reduce((s,e)=>s+e.pts,0))}</b></div></div>`).join("");
+ const H=t=>`<h2 style="margin:16px 0 8px">${t}</h2>`;
+ return ctl+H("👑 Position G.O.A.T.s")+`<div class=grid>${goat}</div>`+H("All-Time Teams")+`<div class=grid style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">${teams}</div>`+(miss.size?`<div class="mu sm" style="margin-top:10px">${miss.size} starter${miss.size>1?"s":""} skipped (no position data yet).</div>`:"")}
+function hof(D){if(!D.gs.length)return EMP;
+ const {pk}=eloAll(D),X={};D.mg.forEach(m=>{const c=D.C[m],po=c.hist.filter(h=>h.g.po);X[m]={...c,gp:c.hist.length,pw:po.filter(h=>h.r==="W").length,trips:new Set(po.map(h=>h.g.season+h.g.src)).size,elo:pk[m]?pk[m].v:1500,swp:Math.max(0,...c.hist.filter(h=>!h.g.agg).map(h=>h.p)),ssp:Math.max(0,...Object.values(c.by).map(b=>b.pf))}});
+ const LS=m=>{const x=X[m];return (mvpCount(D)[m]||0)*10+x.ch*25+x.pw*3+x.trips*4+x.pf/500+(x.elo-1500)/10+pctOf(x)*40},LT=60,leg=D.mg.map(m=>({m,s:LS(m)})).sort((a,b)=>b.s-a.s),
+ H2=t=>`<h2 style="margin:16px 0 8px;font-size:15px;text-transform:uppercase;letter-spacing:1px;color:var(--mu)">${t}</h2>`,
+ ind=H2("Inductee Class")+`<div class=card><div class="mu sm" style="margin-bottom:6px">Legacy Score = 10/League MVP + 25/title + 3/playoff win + 4/playoff trip + 1 per 500 career pts + 1 per 10 peak-Elo pts over 1500 + 40 × win %. Inducted at ${LT}+.</div>${leg.map(x=>{const q=X[x.m];return`<div class=g><span>${x.s>=LT?"🏛 ":""}<b>${esc(x.m)}</b><div class="mu sm">${q.ch} 🏆 · ${mvpCount(D)[x.m]||0} MVP · ${q.pw} playoff W · ${q.trips} trips · peak Elo ${Math.round(q.elo)}</div></span><b style="color:${x.s>=LT?"#f5d36b":"inherit"}">${x.s.toFixed(1)}</b></div>`}).join("")}</div>`,
+ dc=(()=>{const o=D.mg.map(m=>{const sr=new Set(D.ch.filter(c=>c.m===m).map(c=>c.src));return sr.size>1?m:null}).filter(Boolean);return o.length?`<div class=card><h2>👑 Double Crown</h2><div class=sm>Won a title on both Sleeper and ESPN: <b>${o.map(esc).join(", ")}</b></div></div>`:`<div class=card><h2>👑 Double Crown</h2><span class=mu>No manager has won titles on both platforms yet.</span></div>`})(),
+ rg=D.gs.filter(g=>!g.agg),sh=[...rg].sort((a,b)=>b.pa+b.pb-a.pa-a.pb)[0],mf=[...rg].filter(g=>g.pa!==g.pb).sort((a,b)=>Math.abs(a.pa-a.pb)-Math.abs(b.pa-b.pb))[0],
+ gc=(t,g,x)=>g?`<div class=card><b>${t}</b><div class=sm>${esc(g.A)} ${f2(g.pa)} – ${f2(g.pb)} ${esc(g.B)}</div><div class="mu sm">${lbl(g)}${g.po?" · playoffs":""} · ${x}</div></div>`:"",
+ cls=H2("Classic Games")+gc("🎆 Greatest Shootout",sh,f2(sh?sh.pa+sh.pb:0)+" combined")+gc("😮 Miracle Finish",mf,f2(mf?Math.abs(mf.pa-mf.pb):0)+" pt margin"),
+ inf=(()=>{const ps=new Set(D.gs.filter(g=>g.po).flatMap(g=>[g.A+"|"+g.season+g.src,g.B+"|"+g.season+g.src])),ms=[];D.mg.forEach(m=>Object.entries(D.C[m].by).forEach(([k,b])=>{if(!ps.has(m+"|"+b.season+b.src)&&D.gs.some(g=>g.po&&g.season===b.season&&g.src===b.src))ms.push({m,b})}));ms.sort((x,y)=>y.b.pf-x.b.pf);
+  const pl=D.gs.filter(g=>g.po&&!g.agg&&g.pa!==g.pb).map(g=>g.pa<g.pb?{m:g.A,p:g.pa,g}:{m:g.B,p:g.pb,g}).sort((x,y)=>y.p-x.p)[0],t=ms[0];
+  return H2("Hall of Infamy")+(t?`<div class=card><b>😭 Highest-scoring team to miss the playoffs</b><div class=sm>${esc(t.m)} · ${f2(t.b.pf)} pts · ${t.b.season} ${t.b.src==="espn"?"ESPN":"Sleeper"} (${rec(t.b)})</div></div>`:"")+(pl?`<div class=card><b>💔 Most points in a playoff loss</b><div class=sm>${esc(pl.m)} scored ${f2(pl.p)} and lost · ${lbl(pl.g)}</div></div>`:"")})();
+ const mt=MILES.map(([t,f,goal])=>{const r=D.mg.map(m=>({m,v:f(X[m])})).sort((a,b)=>b.v-a.v),got=r.filter(x=>x.v>=goal).length;
+  return`<div class=card><h2>${t} · ${goal.toLocaleString()}</h2><div class="mu sm" style="margin-bottom:6px">${got} of ${r.length} managers have reached it</div>${r.map(x=>{const pc=Math.min(100,x.v/goal*100),done=x.v>=goal;return`<div style="padding:5px 0"><div style="display:flex;justify-content:space-between;gap:8px;font-size:13px"><span>${done?"✅ ":""}${esc(x.m)}</span><span>${Math.round(x.v).toLocaleString()} <span class=mu>${done?"(reached)":"("+Math.ceil(goal-x.v).toLocaleString()+" to go)"}</span></span></div><div style="height:8px;background:rgba(128,128,128,.22);border-radius:4px;overflow:hidden;margin-top:3px"><div style="width:${pc.toFixed(1)}%;height:100%;background:${done?"#f5d36b":"var(--ac)"};border-radius:4px"></div></div></div>`}).join("")}</div>`}).join("");
+ const ring=[...D.ch].sort((a,b)=>b.season-a.season).map(c=>{const gm=D.gs.filter(g=>g.season===c.season&&g.src===c.src&&g.po&&(g.a===c.key||g.b===c.key)).sort((x,y)=>y.week-x.week)[0],tn=S.tn&&S.tn[c.season+"|"+c.key];let sc="";
+  if(gm){const me=gm.a===c.key;sc=`Title game (Wk ${gm.week}): ${f2(me?gm.pa:gm.pb)} – ${f2(me?gm.pb:gm.pa)} vs ${esc(canon(me?gm.b:gm.a))}${gm.agg?" · two-week total":""}`}
+  const lu=gm?(S.pp||[]).filter(x=>x.season===c.season&&x.week===gm.week&&x.own===c.key).sort((a,b)=>b.pts-a.pts):[];
+  return`<div class=card><div style="display:flex;justify-content:space-between;gap:8px"><b>🏆 ${c.season} ${c.src==="espn"?"ESPN":"Sleeper"}</b><b>${esc(c.m)}</b></div>${tn?`<div class="mu sm">“${esc(tn)}”</div>`:""}<div class=sm>${sc}</div>${lu.length?`<details><summary class=mu>Title-game lineup</summary>${lu.map(x=>`<div class=g><span>${esc(pn(x.id))}</span><b>${f2(x.pts)}</b></div>`).join("")}</details>`:""}</div>`}).join("")||`<div class=card><span class=mu>No completed championships found yet.</span></div>`;
+ return ind+mt+H2("Ring of Honor")+dc+ring+cls+inf}
+function phSection(D){const H2=t=>`<h2 style="margin:16px 0 8px">${t}</h2>`;const P=S.pp||[],tg=D.ch.map(c=>{const gm=D.gs.filter(g=>g.season===c.season&&g.src===c.src&&g.po&&(g.a===c.key||g.b===c.key)).sort((x,y)=>y.week-x.week)[0];return gm?P.filter(x=>x.season===c.season&&x.week===gm.week&&x.own===c.key).map(x=>({...x,m:c.m})):[]}).flat(),
+ mv=[...tg].sort((a,b)=>b.pts-a.pts)[0],cnt={};tg.forEach(x=>cnt[x.id]=(cnt[x.id]||0)+1);const multi=Object.entries(cnt).filter(([,n])=>n>1).map(([id,n])=>esc(pn(id))+" ×"+n),
+ mvp=mv?`<div class=card><b>⭐ Championship Game MVP</b><div class=sm>${esc(pn(mv.id))} · ${f2(mv.pts)} pts for ${esc(mv.m)} · ${mv.season} title game</div>${multi.length?`<div class="mu sm">Started on multiple title teams: ${multi.join(", ")}</div>`:""}</div>`:"";
+ const ph=P.length?hofCtl(P)+`<div class="card scroll"><div id="hft">${hofRows()}</div></div>`:`<div class=card><h2>Player Hall of Fame</h2><span class=mu>Needs player-level scoring from Sleeper and ESPN. It loads from the live pulls and isn’t in the built-in history.</span></div>`;
+ return H2("Player Hall of Fame")+mvp+ph}
+// ---------- v14: scenario machine + charts ----------
+const PAL=["#4ade80","#60a5fa","#f472b6","#fbbf24","#a78bfa","#f87171","#34d399","#38bdf8","#fb923c","#e879f9","#a3e635","#2dd4bf"],sn=m=>{const p=m.split(" ");return p.length>1?p[0]+" "+p[1][0]+".":m};
+function scenarios(){return scenarios0()+predictor()}
+function scenarios0(){S._sc=null;const N=S.next,sv=S.filter;S.filter="all";const D=data();S.filter=sv;const base=N&&!N.po?getSim(N):null;
+ if(!base)return`<div class=card><h2>Scenario machine</h2><span class=mu>Opens when regular-season games remain and the Sleeper schedule is loaded.</span></div>`;
+ const key=N.season+"·sleeper",ok=m=>D.C[m]&&D.C[m].by[key],wk=[],valid={};
+ S.schedEst=S.schedEst||{};S.sched=S.sched||{};{const tm=D.mg.filter(ok),n=tm.length;if(n>=4&&n%2===0)for(let w=N.week;w<N.ps;w++){if(!S.sched[w]&&!(w===N.week&&N.pairs)){const r=w-N.week,a=tm.slice(1),L=[tm[0],...a.map((_,i)=>a[(i+r)%(n-1)])],pr=[];for(let i=0;i<n/2;i++)pr.push([L[i],L[n-1-i]]);S.sched[w]=pr;S.schedEst[w]=pr}}}
+ const est=w=>!!(S.schedEst&&S.schedEst[w]&&S.sched[w]===S.schedEst[w]);
+ for(let w=N.week;w<N.ps;w++){const pr=(S.sched&&S.sched[w])||(w===N.week?N.pairs:null);if(pr){const g=pr.map(([a,b])=>[canon(a),canon(b)]).filter(([a,b])=>ok(a)&&ok(b));g.forEach(([a,b])=>valid[w+"|"+a+"|"+b]=1);wk.push([w,g])}}
+ const tot=wk.reduce((a,[,g])=>a+g.length,0),P=S.sc=S.sc||{};Object.keys(P).forEach(k=>{if(!valid[k])delete P[k]});const np=Object.keys(P).length,res=simulate(D,N,P),B={};base.rows.forEach(r=>B[r.m]=r);
+ const add={};res.rows.forEach(r=>add[r.m]={w:0,l:0});Object.entries(P).forEach(([k,s])=>{const[,a,b]=k.split("|"),[x,y]=s==="a"?[a,b]:[b,a];add[x].w++;add[y].l++});
+ const st=res.rows.map(r=>{const b=D.C[r.m].by[key];return{...r,w:b.w+b.t/2+add[r.m].w,l:b.l+b.t/2+add[r.m].l,pf:b.pf}}).sort((a,b)=>b.w-a.w||b.pf-a.pf);
+ const rows=st.map((r,i)=>{const d=Math.round(r.pct)-Math.round(B[r.m].pct);return`<tr style="${i===res.pot-1?"border-bottom:2px solid var(--hl)":""}"><td>${i+1}</td><td class=l>${esc(r.m)}</td><td>${n1(r.w)}-${n1(r.l)}</td><td><b>${Math.round(r.pct)}%</b></td><td>${np?`<b style="color:${d>0?"var(--ac)":d<0?"#f87171":"inherit"}">${d>0?"▲ +":d<0?"▼ ":"—"}${d?d:""}</b>`:"—"}</td><td>${Math.round(r.bye)}%</td></tr>`}).join("");
+ const sw=(wk.some(([w])=>w===S.scw)?S.scw:(wk.find(([w,g])=>g.some(([a,b])=>!P[w+"|"+a+"|"+b]))||wk[0])[0]),wsel=`<select id="scw">${wk.map(([w,g])=>{const d=g.filter(([a,b])=>P[w+"|"+a+"|"+b]).length;return`<option value="${w}"${w===sw?" selected":""}>Week ${w}${est(w)?" (est.)":""} · ${d}/${g.length} picked${d===g.length?" ✓":""}</option>`}).join("")}</select>`,gl=wk.filter(([w])=>w===sw).map(([w,g])=>`<div class="mu sm" style="margin:10px 0 4px">WEEK ${w}${est(w)?" · estimated pairings (real schedule not loaded — tap Reload live)":""}</div>${g.map(([a,b])=>{const k=w+"|"+a+"|"+b;return`<div class=g style="gap:6px"><button${P[k]==="a"?' class="on"':""} data-sc="${esc(k)}|a" style="flex:1">${esc(a)}</button><span class=mu>vs</span><button${P[k]==="b"?' class="on"':""} data-sc="${esc(k)}|b" style="flex:1">${esc(b)}</button></div>`}).join("")}`).join("");
+ S._sc={st,np,tot,B,N,res};S._ap=()=>{S.sc=S.sc||{};wk.forEach(([w,g])=>g.forEach(([a,b])=>{const k=w+"|"+a+"|"+b;if(!S.sc[k]){const m=res.mu||{};S.sc[k]=((m[a]||B[a].avg)>=(m[b]||B[b].avg))?"a":"b"}}))};
+ return`<div class=card><div class=row style="margin:0"><h2 style="margin:0">Scenario machine</h2><button id="sca">Auto-pick favorites</button><button id="scr">Reset${np?" ("+np+")":""}</button></div><div class=row style="margin:10px 0 0">${wsel}<span class="mu sm">${np} of ${tot} games picked${np<tot?" · finish every week to unlock the playoff picture":" · all picked"}</span></div><div class="mu sm" style="margin-top:6px">Choose a week, then tap a team to make it win (tap again to clear). Picks change the projected records and odds. Unpicked games are simulated. Top ${res.pot} make the playoffs; ties break on points scored.</div>${gl}</div>`+
+ `<div class="card scroll"><h2>Projected standings${np?" · with your picks":""}</h2><table><tr><th>#</th><th class=l>Manager</th><th>Record</th><th>Playoffs</th><th>Δ odds</th><th>Bye</th></tr>${rows}</table><div class="mu sm" style="margin-top:6px">Record counts only your picks. Odds come from ${res.SIM.toLocaleString()} simulations of everything left. Δ compares with no picks.</div></div>`}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-sc]");if(b){const p=b.dataset.sc.split("|"),s=p.pop(),k=p.join("|");S.sc=S.sc||{};if(S.sc[k]===s)delete S.sc[k];else S.sc[k]=s;render();return}if(e.target.id==="scr"){S.sc={};render()}});
+document.addEventListener("change",e=>{if(e.target.id==="scw"){S.scw=+e.target.value;render();return}if(e.target.id==="cm"||e.target.id==="ch"){S[e.target.id]=e.target.value;render()}});
+const qt=(a,p)=>{const i=(a.length-1)*p,f=Math.floor(i);return a[f]+(a[Math.min(f+1,a.length-1)]-a[f])*(i-f)};
+function charts(D){if(!D.gs.length)return EMP;const sel=ysel(D,1),key=S.ys==="all"?seasonsOf(D)[0]:S.ys,cm=S.cm==="p"?"p":"w",gs=D.gs.filter(g=>!g.po&&sk(g)===key),wks=[...new Set(gs.map(g=>g.week))].sort((a,b)=>a-b),ms=[...new Set(gs.flatMap(g=>[g.A,g.B]))].sort(),run={},ln={},hl=S.ch||"all";
+ ms.forEach(m=>{run[m]=0;ln[m]=[]});wks.forEach(w=>{gs.filter(g=>g.week===w).forEach(g=>[[g.A,g.pa,0],[g.B,g.pb,1]].forEach(([m,p,i])=>run[m]+=cm==="p"?p:W(g,i)));ms.forEach(m=>ln[m].push(run[m]))});
+ const mx=Math.max(1,...ms.map(m=>run[m])),X=i=>36+314*(i/Math.max(1,wks.length-1)),Y=v=>10+206*(1-v/mx),col=m=>PAL[ms.indexOf(m)%PAL.length],op=m=>hl==="all"||hl===m?1:.15;
+ const grid=[0,1,2,3,4].map(k=>{const v=mx*k/4;return`<line x1="36" x2="350" y1="${Y(v)}" y2="${Y(v)}" stroke="currentColor" opacity=".12"/><text x="32" y="${Y(v)+3}" font-size="9" text-anchor="end" fill="currentColor" opacity=".6">${Math.round(v)}</text>`}).join(""),
+ xl=wks.map((w,i)=>i%2===0||wks.length<9?`<text x="${X(i)}" y="232" font-size="9" text-anchor="middle" fill="currentColor" opacity=".6">${w}</text>`:"").join("");
+ const lines=[...ms].sort((a,b)=>(hl===a)-(hl===b)).map(m=>`<polyline fill="none" stroke="${col(m)}" stroke-width="${hl===m?3.5:2}" opacity="${op(m)}" points="${ln[m].map((v,i)=>X(i)+","+Y(v)).join(" ")}"/>`).join("");
+ const leg=ms.map(m=>`<span style="color:${col(m)};opacity:${op(m)};white-space:nowrap">● ${esc(sn(m))}</span>`).join(" &nbsp; ");
+ const sc={};D.gs.filter(g=>!g.po&&!g.agg&&(S.ys==="all"||sk(g)===key)).forEach(g=>{(sc[g.A]=sc[g.A]||[]).push(g.pa);(sc[g.B]=sc[g.B]||[]).push(g.pb)});
+ const bx=Object.entries(sc).filter(([,a])=>a.length>=3).map(([m,a])=>{a.sort((x,y)=>x-y);return{m,lo:a[0],q1:qt(a,.25),md:qt(a,.5),q3:qt(a,.75),hi:a[a.length-1]}}).sort((x,y)=>y.md-x.md),
+ lo=Math.min(...bx.map(b=>b.lo)),hi=Math.max(...bx.map(b=>b.hi)),BX=v=>92+258*((v-lo)/Math.max(1,hi-lo));
+ const box=bx.map((b,i)=>{const y=14+i*26;return`<text x="0" y="${y+4}" font-size="11" fill="currentColor">${esc(sn(b.m))}</text><line x1="${BX(b.lo)}" x2="${BX(b.hi)}" y1="${y}" y2="${y}" stroke="${col(b.m)}" stroke-width="2"/><line x1="${BX(b.lo)}" x2="${BX(b.lo)}" y1="${y-5}" y2="${y+5}" stroke="${col(b.m)}" stroke-width="2"/><line x1="${BX(b.hi)}" x2="${BX(b.hi)}" y1="${y-5}" y2="${y+5}" stroke="${col(b.m)}" stroke-width="2"/><rect x="${BX(b.q1)}" y="${y-8}" width="${Math.max(2,BX(b.q3)-BX(b.q1))}" height="16" rx="3" fill="${col(b.m)}" opacity=".45"/><line x1="${BX(b.md)}" x2="${BX(b.md)}" y1="${y-8}" y2="${y+8}" stroke="currentColor" stroke-width="2.5"/>`}).join(""),
+ ax=[lo,(lo+hi)/2,hi].map(v=>`<text x="${BX(v)}" y="${14+bx.length*26+4}" font-size="9" text-anchor="middle" fill="currentColor" opacity=".6">${Math.round(v)}</text>`).join("");
+ return`<div class=card><div class=row style="margin:0"><h2 style="margin:0">Tale of the tape</h2>${sel}</div><div class="mu sm" style="margin-top:6px">Race chart uses ${lab(key)} (the latest season when “All seasons” is picked). Box plots use the season you pick.</div></div>`+
+ `<div class=card><div class=row style="margin:0"><h2 style="margin:0">Season race</h2><select id="cm"><option value="w"${cm==="w"?" selected":""}>Cumulative wins</option><option value="p"${cm==="p"?" selected":""}>Cumulative points</option></select><select id="ch"><option value="all">All lines</option>${ms.map(m=>`<option${m===hl?" selected":""}>${esc(m)}</option>`).join("")}</select></div><svg viewBox="0 0 360 240" width="100%" style="margin-top:8px;color:inherit">${grid}${xl}${lines}</svg><div class="sm" style="line-height:1.9">${leg}</div><div class="mu sm">X axis = week. Pick a manager above to highlight their line.</div></div>`+
+ `<div class=card><h2>Scoring distribution</h2>${bx.length?`<svg viewBox="0 0 360 ${bx.length*26+24}" width="100%" style="color:inherit">${box}${ax}</svg><div class="mu sm">Bar = floor to ceiling, shaded box = middle 50% of weeks, white tick = median. Sorted by median.</div>`:`<span class=mu>Needs 3+ games per manager.</span>`}</div>`+
+ T("Floor, median, ceiling",["Manager","Floor","Median","Ceiling","Spread"],bx.map(b=>[esc(b.m),b.lo.toFixed(1),b.md.toFixed(1),b.hi.toFixed(1),(b.hi-b.lo).toFixed(0)]),"A big spread means boom-or-bust weeks.")}
+// ---------- v15: ring case, tale of the tape ----------
+const champList=D=>[...D.ch].sort((a,b)=>b.season-a.season||(a.src<b.src?-1:1));
+function ringCase(D){const cl=champList(D);if(!cl.length)return"";
+ const ring=(c,i)=>`<div data-rg="${i}" style="cursor:pointer;text-align:center;flex:0 0 auto;width:76px"><svg viewBox="0 0 72 84" width="72" height="84"><defs><linearGradient id="rg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2a8"/><stop offset=".5" stop-color="#d4a017"/><stop offset="1" stop-color="#7a5806"/></linearGradient><linearGradient id="rd${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#9be7ff"/><stop offset="1" stop-color="#3a8dde"/></linearGradient></defs><ellipse cx="36" cy="56" rx="22" ry="20" fill="none" stroke="url(#rg${i})" stroke-width="8"/><ellipse cx="36" cy="53" rx="22" ry="20" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1"/><polygon points="36,4 54,22 36,42 18,22" fill="url(#rd${i})" stroke="#e8f7ff" stroke-width="1.5"/><path d="M18 22H54M36 4L28 22L36 42M36 4L44 22L36 42" stroke="#fff" stroke-opacity=".8" stroke-width="1" fill="none"/><circle cx="21" cy="36" r="2.6" fill="#fff"/><circle cx="51" cy="36" r="2.6" fill="#fff"/></svg><div style="color:#f5d36b;font-weight:700;font-size:13px">${c.season}</div><div style="color:#cbd5e1;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(sn(c.m))}</div></div>`;
+ let modal="";const c=cl[S.rg];
+ if(S.rg!=null&&c){const r=champRun(D,c),N=["Championship","Semifinal","Quarterfinal"];
+  modal=`<div data-rg="" style="position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px"><div data-rg="keep" style="background:#141b30;color:#e8ecf5;border:1px solid #d4a017;border-radius:16px;padding:18px;max-width:380px;width:100%;max-height:80vh;overflow-y:auto"><div style="display:flex;justify-content:space-between"><b style="color:#f5d36b">🏆 ${c.season} ${c.src==="espn"?"ESPN":"Sleeper"} Champion</b><span data-rg="" style="cursor:pointer;padding:0 6px">✕</span></div><div style="font-size:22px;font-weight:800;margin-top:6px">${esc(c.m)}</div>${r.tn?`<div style="color:#94a3b8;font-style:italic">“${esc(r.tn)}”</div>`:""}${r.run.length?`<div style="margin-top:10px;font-size:13px;color:#94a3b8">FINAL SCORE</div><div style="font-size:18px;font-weight:700">${f2(r.run[r.run.length-1].p)} – ${f2(r.run[r.run.length-1].q)} <span style="font-size:13px;font-weight:400">vs ${esc(r.run[r.run.length-1].o)}</span></div>${r.run[r.run.length-1].agg?'<div style="font-size:11px;color:#94a3b8">two-week total</div>':""}<div style="margin-top:12px;font-size:13px;color:#94a3b8">PLAYOFF RUN</div>${r.run.map((g,i)=>`<div style="display:flex;justify-content:space-between;margin:5px 0;font-size:14px"><span>${N[r.run.length-1-i]||"Round"} · vs ${esc(g.o)}</span><b style="color:${g.win?"#4ade80":"#f87171"}">${g.win?"W":"L"} ${f2(g.p)}–${f2(g.q)}</b></div>`).join("")}`:`<div style="margin-top:10px;color:#94a3b8">No playoff games on record for this season.</div>`}</div></div>`}
+ return`<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid #b8962e66;border-radius:16px;padding:14px 14px 10px;margin-bottom:12px"><div style="color:#f5d36b;letter-spacing:3px;font-size:11px">CHAMPIONSHIP RING CASE</div><div style="display:flex;gap:12px;overflow-x:auto;padding:10px 2px 4px">${cl.map(ring).join("")}</div><div style="color:#64748b;font-size:11px">Tap a ring for the title game and playoff run.</div></div>${modal}`}
+function champRun(D,c){const gs=D.gs.filter(g=>g.season===c.season&&g.src===c.src&&g.po&&(g.a===c.key||g.b===c.key)).sort((x,y)=>x.week-y.week);
+ return{tn:S.tn&&S.tn[c.season+"|"+c.key],run:gs.map(g=>{const me=g.a===c.key,p=me?g.pa:g.pb,q=me?g.pb:g.pa;return{p,q,o:canon(me?g.b:g.a),win:p>q,agg:g.agg}})}}
+document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-rg]");if(!t)return;const v=t.dataset.rg;if(v==="keep")return;S.rg=v===""?null:+v;render()});
+function tape(D,h){const a=S.h1,b=S.h2,mv=r=>{const x=h.g.filter(y=>y.r===r);return x.length?x.reduce((s,y)=>s+Math.abs(y.p-y.q),0)/x.length:0},
+ rows=[["Series wins",h.w,h.l,n=>n],["Points in meetings",h.pf,h.pa,f2],["Avg margin of victory",mv("W"),mv("L"),n=>n.toFixed(1)],["Championships",D.C[a]?D.C[a].ch:0,D.C[b]?D.C[b].ch:0,n=>n]],bar=(w,c,o)=>`<div style="flex:1;display:flex;justify-content:${o};background:rgba(128,128,128,.15);overflow:hidden;border-radius:${o==="flex-end"?"6px 0 0 6px":"0 6px 6px 0"}"><div style="width:${w}%;background:${c};transform-origin:${o==="flex-end"?"right":"left"};animation:bgrow .8s ease-out"></div></div>`;
+ return`<div style="margin-top:12px;border:1px solid rgba(128,128,128,.3);border-radius:12px;padding:12px"><div style="display:flex;justify-content:space-between;align-items:center;font-weight:700"><span style="color:var(--ac)">${esc(a)}</span><span class=mu style="font-size:11px;letter-spacing:2px">TALE OF THE TAPE</span><span style="color:#fb923c">${esc(b)}</span></div>${rows.map(([t,x,y,f])=>{const s=x+y||1;return`<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:13px"><b${x>y?' style="color:var(--ac)"':""}>${f(x)}</b><span class=mu>${t}</span><b${y>x?' style="color:#fb923c"':""}>${f(y)}</b></div><div style="display:flex;height:12px;margin-top:4px;gap:2px">${bar(x/s*100,"var(--ac)","flex-end")}${bar(y/s*100,"#fb923c","flex-start")}</div></div>`}).join("")}</div>`}
+
+// ================= v17: drafts, transactions, MVP, graphics, dashboard, playoff predictor =================
+let GCN=0;
+const GCOL={gold:["#fde68a","#b45309"],green:["#86efac","#15803d"],red:["#fca5a5","#b91c1c"],blue:["#93c5fd","#1d4ed8"],purple:["#d8b4fe","#6d28d9"]};
+// Reusable SVG "trophy card": label, big headline, subtitle, up to 4 stat chips, optional extra SVG
+function gcard(o){const c=GCOL[o.color||"gold"],id="gc"+(++GCN),h=o.h||190,cy=o.cy||116,bs=o.big.length>24?17:o.big.length>18?21:27;
+ const chips=(o.chips||[]).slice(0,4).map(([k,v],i)=>{const x=22+i*118;return`<rect x="${x}" y="${cy}" width="108" height="46" rx="8" fill="#000" opacity=".3"/><text x="${x+10}" y="${cy+17}" font-size="10" letter-spacing="1" fill="${c[0]}">${esc(String(k).toUpperCase())}</text><text x="${x+10}" y="${cy+37}" font-size="16" font-weight="700" fill="#fff">${esc(String(v))}</text>`}).join("");
+ return`<svg viewBox="0 0 520 ${h}" width="100%" role="img" aria-label="${esc(o.label+": "+o.big)}" style="display:block;border-radius:14px;max-width:520px"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c[1]}"/><stop offset="1" stop-color="#0b1020"/></linearGradient></defs><rect width="520" height="${h}" rx="14" fill="url(#${id})"/><text x="22" y="32" font-size="12" font-weight="700" letter-spacing="2" fill="${c[0]}">${o.icon||""} ${esc(o.label.toUpperCase())}</text><text x="22" y="72" font-size="${bs}" font-weight="800" fill="#fff">${esc(o.big)}</text><text x="22" y="96" font-size="13" fill="#e6ebf7" opacity=".85">${esc(o.sub||"")}</text>${chips}${o.extra||""}</svg>`}
+
+// ---------- extra data (Sleeper drafts + transactions) ----------
+async function loadExtra(){
+ try{const c=JSON.parse(localStorage.getItem("lh-extra-"+SL_NOW)||"null");if(c&&c.v&&c.v.seasons&&c.v.seasons.length&&Date.now()-c.t<6*3600e3){S.ex=c.v;exInit();return true}}catch(e){}
+ try{const out={seasons:[],names:{}},U="https://api.sleeper.app/v1/";let id=SL_NOW;
+  while(id&&id!=="0"){const L=await J(U+"league/"+id);let drafts=[];try{drafts=await J(U+"league/"+id+"/drafts")}catch(e){}
+   const dr=[];for(const d of drafts){try{dr.push({draft_id:d.draft_id,type:d.type,season:d.season,picks:await J(U+"draft/"+d.draft_id+"/picks")})}catch(e){}}
+   const tx=(await Promise.all(Array.from({length:18},(_,i)=>J(U+"league/"+id+"/transactions/"+(i+1)).catch(()=>[])))).flat().map(t=>({type:t.type,status:t.status,leg:t.leg,adds:t.adds,drops:t.drops,roster_ids:t.roster_ids,draft_picks:t.draft_picks,settings:t.settings,created:t.created}));
+   out.seasons.push({season:+L.season,league_id:id,drafts:dr,tx});id=L.previous_league_id}
+  if(!out.seasons.length)return false;S.ex=out;try{localStorage.setItem("lh-extra-"+SL_NOW,JSON.stringify({t:Date.now(),v:out}))}catch(e){}exInit();status("Draft & transaction data loaded (live)");return true}catch(e){return false}}
+function exInit(){const ex=S.ex;if(!ex)return;S.pn=S.pn||{};S.pos=S.pos||{};S.xid=S.xid||new Set();
+ Object.entries(ex.names||{}).forEach(([id,v])=>{if(v&&v.n){S.pn[id]=v.n;if(v.p)S.pos[id]=v.p}});
+ (ex.seasons||[]).forEach(se=>{(se.drafts||[]).forEach(d=>(d.picks||[]).forEach(p=>{const m=p.metadata||{},nm=((m.first_name||"")+" "+(m.last_name||"")).trim();if(nm&&!S.pn[p.player_id]){S.pn[p.player_id]=nm;if(m.position)S.pos[p.player_id]=m.position==="FB"?"RB":m.position}}));
+  (se.tx||[]).forEach(t=>Object.keys(t.adds||{}).concat(Object.keys(t.drops||{})).forEach(id=>S.xid.add(id)))})}
+let PPI={k:-1,m:{}};
+const ppIdx=()=>{const n=(S.pp||[]).length;if(PPI.k!==n){PPI={k:n,m:{}};(S.pp||[]).forEach(x=>{if(x.src==="sleeper")(PPI.m[x.id+"|"+x.season]=PPI.m[x.id+"|"+x.season]||[]).push(x)})}return PPI.m};
+const ptsOf=(id,season,week,m)=>{let s=0,n=0;((ppIdx()[id+"|"+season])||[]).forEach(x=>{if(x.week>=week&&(!m||canon(x.own)===m)){s+=x.pts;n++}});return{s,n}};
+const NOX=(t)=>`<div class=card><h2>${t}</h2><span class=mu>Sleeper draft and transaction data isn’t loaded yet. The weekly update saves it (sleeper-extra.json); you can also try ↻ Reload live. It needs the update workflow from the latest setup directions.</span></div>`;
+
+// ---------- DRAFT ----------
+function pickRows(){const ex=S.ex;if(!ex)return[];const tot={},wk={};(S.pp||[]).forEach(x=>{if(x.src!=="sleeper")return;const k=x.season+"|"+x.id;tot[k]=(tot[k]||0)+x.pts;wk[x.season]=Math.max(wk[x.season]||0,x.week)});
+ const out=[];ex.seasons.forEach(se=>{const own=(S.ro||{})[se.season]||{};(se.drafts||[]).forEach(d=>{const ps=(d.picks||[]).filter(p=>p.player_id);if(!ps.length)return;
+  const rows=ps.map(p=>{const m=p.metadata||{};return{season:se.season,did:d.draft_id,pick:+p.pick_no,round:+p.round,m:canon(own[p.roster_id]||"Roster "+p.roster_id),id:p.player_id,name:pn(p.player_id),pos:(m.position==="FB"?"RB":m.position)||(S.pos||{})[p.player_id]||"",nfl:m.team||"",keeper:!!p.is_keeper,pts:tot[se.season+"|"+p.player_id]||0,gp:wk[se.season]||0}});
+  const use=rows.filter(r=>!r.keeper&&r.gp>=4);let a=0,b=0;
+  if(use.length>=6){const X=use.map(r=>Math.log(r.pick)),Y=use.map(r=>r.pts),mx=X.reduce((p,c)=>p+c,0)/X.length,my=Y.reduce((p,c)=>p+c,0)/Y.length;let sxy=0,sxx=0;X.forEach((x,i)=>{sxy+=(x-mx)*(Y[i]-my);sxx+=(x-mx)*(x-mx)});b=sxx?sxy/sxx:0;a=my-b*mx}
+  rows.forEach(r=>{r.exp=a+b*Math.log(r.pick);r.a=a;r.b=b;r.sur=use.length>=6&&!r.keeper&&r.gp>=4?r.pts-r.exp:null;out.push(r)})})});return out}
+function scatter(set,r){const W=476,H=84,x0=22,y0=190,xs=Math.max(...set.map(p=>p.pick)),ys=Math.max(1,...set.map(p=>p.pts)),X=p=>x0+(p-1)/Math.max(1,xs-1)*W,Y=v=>y0+H-Math.max(0,Math.min(ys,v))/ys*H;
+ const dots=set.map(p=>`<circle cx="${X(p.pick).toFixed(1)}" cy="${Y(p.pts).toFixed(1)}" r="3" fill="#fff" opacity=".4"/>`).join("");
+ const ln=`<line x1="${X(1)}" y1="${Y(r.a).toFixed(1)}" x2="${X(xs)}" y2="${Y(r.a+r.b*Math.log(xs)).toFixed(1)}" stroke="#fde68a" stroke-width="1.5" stroke-dasharray="4 3" opacity=".8"/>`;
+ return`<line x1="${x0}" y1="${y0+H}" x2="${x0+W}" y2="${y0+H}" stroke="#fff" opacity=".3"/><line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y0+H}" stroke="#fff" opacity=".3"/>${dots}${ln}<circle cx="${X(r.pick).toFixed(1)}" cy="${Y(r.pts).toFixed(1)}" r="8" fill="none" stroke="#fde68a" stroke-width="3"/><circle cx="${X(r.pick).toFixed(1)}" cy="${Y(r.pts).toFixed(1)}" r="4" fill="#fff"/><text x="${x0+W}" y="${y0+H+13}" text-anchor="end" font-size="10" fill="#fff" opacity=".6">draft pick →</text><text x="${x0+4}" y="${y0-4}" font-size="10" fill="#fff" opacity=".6">season points ↑ (dashed = expected)</text>`}
+function pickCard(r,all,best){const set=all.filter(x=>x.did===r.did&&!x.keeper),sgn=r.sur>=0?"+":"";
+ return gcard({label:best?"Greatest pick of all time":"Worst pick of all time",icon:best?"🏆":"💩",color:best?"green":"red",h:290,big:r.name+(r.pos?" ("+r.pos+")":""),sub:`${r.season} · Pick #${r.pick} (Round ${r.round}) · drafted by ${r.m}`,
+  chips:[["Season pts",nf(r.pts)],["Expected",nf(r.exp)],["vs expected",sgn+nf(r.sur)],["Pick slot","#"+r.pick]],extra:scatter(set,r)})}
+function draft(D){if(!S.ex)return NOX("Draft");const R=pickRows();if(!R.length)return NOX("Draft");const e=esc,V=R.filter(r=>r.sur!=null).sort((a,b)=>b.sur-a.sur);
+ if(!V.length)return`<div class=card><h2>Draft</h2><span class=mu>${R.length} picks loaded, but not enough scoring data yet to grade them (needs 4+ played weeks of player points).</span></div>`;
+ const best=V[0],worst=V[V.length-1],M={};R.forEach(r=>{const a=M[r.m]=M[r.m]||{m:r.m,n:0,g:0,s:0,best:null,worst:null};a.n++;if(r.sur!=null){a.g++;a.s+=r.sur;if(!a.best||r.sur>a.best.sur)a.best=r;if(!a.worst||r.sur<a.worst.sur)a.worst=r}});
+ const tbl=(rows)=>`<div class=scroll><table><tr><th class=l>Player</th><th>Season</th><th>Pick</th><th class=l>Drafted by</th><th>Pts</th><th>Exp.</th><th>±</th></tr>${rows.map(r=>`<tr><td class=l><b>${e(r.name)}</b> <span class="mu sm">${e(r.pos)}</span></td><td>${r.season}</td><td>#${r.pick}</td><td class=l>${e(r.m)}</td><td>${nf(r.pts)}</td><td>${nf(r.exp)}</td><td style="color:${r.sur>=0?"var(--ac)":"#f87171"}">${r.sur>=0?"+":""}${nf(r.sur)}</td></tr>`).join("")}</table></div>`;
+ const grades=Object.values(M).filter(a=>a.g).sort((a,b)=>b.s/b.g-a.s/a.g);
+ const rd={};R.forEach(r=>{const a=rd[r.round]=rd[r.round]||{n:0,p:0};a.n++;a.p+=r.pts});
+ const ps={};R.forEach(r=>{const a=ps[r.pos||"?"]=ps[r.pos||"?"]||{n:0,p:0,s:0,g:0};a.n++;a.p+=r.pts;if(r.sur!=null){a.s+=r.sur;a.g++}});
+ const rep={};R.forEach(r=>{const k=r.m+"|"+r.id;(rep[k]=rep[k]||{m:r.m,name:r.name,pos:r.pos,yrs:[]}).yrs.push(r.season+" #"+r.pick)});
+ const reps=Object.values(rep).filter(x=>x.yrs.length>1).sort((a,b)=>b.yrs.length-a.yrs.length),pl={};R.forEach(r=>{(pl[r.id]=pl[r.id]||{name:r.name,pos:r.pos,n:0,by:new Set()}).n++;pl[r.id].by.add(r.m)});
+ const pop=Object.values(pl).filter(x=>x.n>1).sort((a,b)=>b.n-a.n).slice(0,8),firsts=R.filter(r=>r.pick===1).sort((a,b)=>b.season-a.season);
+ return`<div class=grid>${pickCard(best,R,true)}${pickCard(worst,R,false)}</div>
+ <div class=card><h2>Draft overview</h2><div class=g><span class=mu>Picks on record</span><b>${R.length}</b></div><div class=g><span class=mu>Drafts</span><b>${new Set(R.map(r=>r.did)).size}</b></div><div class=g><span class=mu>Seasons</span><b>${[...new Set(R.map(r=>r.season))].sort().join(", ")}</b></div><div class=g><span class=mu>Keeper picks</span><b>${R.filter(r=>r.keeper).length}</b></div></div>
+ <div class="card scroll"><h2>Draft grades (points vs. expected for the pick slot)</h2><table><tr><th>#</th><th class=l>Manager</th><th>Picks</th><th>Avg ±/pick</th><th class=l>Best pick</th><th class=l>Worst pick</th></tr>${grades.map((a,i)=>`<tr><td>${i+1}</td><td class=l><b>${e(a.m)}</b></td><td>${a.n}</td><td style="color:${a.s>=0?"var(--ac)":"#f87171"}">${a.s>=0?"+":""}${nf(a.s/a.g)}</td><td class=l>${e(a.best.name)} <span class="mu sm">(${a.best.season} #${a.best.pick})</span></td><td class=l>${e(a.worst.name)} <span class="mu sm">(${a.worst.season} #${a.worst.pick})</span></td></tr>`).join("")}</table></div>
+ <div class=grid><div class="card scroll"><h2>Top 5 steals</h2>${tbl(V.slice(0,5))}</div><div class="card scroll"><h2>Top 5 busts</h2>${tbl(V.slice(-5).reverse())}</div></div>
+ <div class="card scroll"><h2>Drafted by the same team the most</h2>${reps.length?`<table><tr><th class=l>Manager</th><th class=l>Player</th><th>Times</th><th class=l>Picks</th></tr>${reps.slice(0,10).map(x=>`<tr><td class=l><b>${e(x.m)}</b></td><td class=l>${e(x.name)} <span class="mu sm">${e(x.pos)}</span></td><td>${x.yrs.length}</td><td class="l mu sm">${x.yrs.map(e).join(", ")}</td></tr>`).join("")}</table>`:`<div class=mu>No manager has drafted the same player twice yet.</div>`}${pop.length?`<h2 style="margin-top:12px">Most-drafted players league-wide</h2>${pop.map(x=>`<div class=g><span>${e(x.name)} <span class="mu sm">${e(x.pos)}</span></span><b>${x.n}× · ${x.by.size} manager${x.by.size>1?"s":""}</b></div>`).join("")}`:""}</div>
+ <div class=grid><div class="card scroll"><h2>Points by round</h2><table><tr><th>Round</th><th>Picks</th><th>Avg pts</th></tr>${Object.entries(rd).map(([r,a])=>`<tr><td>${r}</td><td>${a.n}</td><td>${nf(a.p/a.n)}</td></tr>`).join("")}</table></div>
+ <div class="card scroll"><h2>By position</h2><table><tr><th>Pos</th><th>Picks</th><th>Avg pts</th><th>Avg ±</th></tr>${Object.entries(ps).sort((a,b)=>b[1].n-a[1].n).map(([p,a])=>`<tr><td>${e(p)}</td><td>${a.n}</td><td>${nf(a.p/a.n)}</td><td>${a.g?(a.s/a.g>=0?"+":"")+nf(a.s/a.g):"—"}</td></tr>`).join("")}</table></div>
+ <div class=card><h2>First overall picks</h2>${firsts.map(r=>`<div class=g><span>${r.season} · <b>${e(r.name)}</b></span><span class=mu>${e(r.m)} · ${nf(r.pts)} pts</span></div>`).join("")||"<span class=mu>—</span>"}</div></div>
+ <div class="card mu sm">How picks are graded: each draft’s points are fit to the pick number (earlier picks should score more); “expected” is that curve, and ± is actual season points minus expected. Keeper picks and seasons with fewer than 4 played weeks are not graded. Points are what each player scored as a starter.</div>`}
+
+// ---------- TRANSACTIONS ----------
+function txAll(){const ex=S.ex;if(!ex)return null;const T=[];ex.seasons.forEach(se=>{const own=(S.ro||{})[se.season]||{},mg=r=>canon(own[r]||"Roster "+r);(se.tx||[]).forEach(t=>{if(t.status&&t.status!=="complete")return;T.push({season:se.season,week:+t.leg||0,type:t.type,t,mg})})});return T}
+let TXC={k:"",v:null};
+function txStats(){const T=txAll();if(!T)return null;const k=T.length+"|"+(S.pp||[]).length+"|"+Object.keys(S.pn||{}).length;if(TXC.k===k)return TXC.v;
+ const B={},bd=m=>B[m]=B[m]||{m,tx:0,add:0,drop:0,trade:0,faab:0,waiver:0},W=[],TR=[];
+ T.forEach(x=>{const t=x.t,mg=x.mg;
+  if(x.type==="trade"){(t.roster_ids||[]).forEach(r=>{const a=bd(mg(r));a.tx++;a.trade++});
+   const sides=(t.roster_ids||[]).map(r=>{const recv=Object.entries(t.adds||{}).filter(([,rr])=>rr===r).map(([id])=>id),gave=Object.entries(t.drops||{}).filter(([,rr])=>rr===r).map(([id])=>id);
+    const vr=recv.map(id=>({id,name:pn(id),...ptsOf(id,x.season,x.week)})),vg=gave.map(id=>({id,name:pn(id),...ptsOf(id,x.season,x.week)})),sr=vr.reduce((a,b)=>a+b.s,0),sg=vg.reduce((a,b)=>a+b.s,0);
+    const pk=(t.draft_picks||[]).filter(p=>p.owner_id===r).map(p=>p.season+" R"+p.round+" pick"),pg=(t.draft_picks||[]).filter(p=>p.previous_owner_id===r).map(p=>p.season+" R"+p.round+" pick");
+    return{m:mg(r),got:vr,gave:vg,picksIn:pk,picksOut:pg,net:sr-sg,sr,sg}});
+   if(!sides.some(sd=>sd.gave.length>=7))TR.push({season:x.season,week:x.week,sides,worst:sides.reduce((a,b)=>b.net<a.net?b:a,sides[0]||{net:0})})}
+  else{const rs=t.roster_ids||[];rs.forEach(r=>{const a=bd(mg(r));a.tx++;if(x.type==="waiver")a.waiver++});
+   Object.entries(t.adds||{}).forEach(([id,r])=>{const a=bd(mg(r));a.add++;const bid=(t.settings&&t.settings.waiver_bid)||0;a.faab+=bid;const p=ptsOf(id,x.season,x.week,mg(r));W.push({season:x.season,week:x.week,m:mg(r),id,name:pn(id),bid,type:x.type,pts:p.s,starts:p.n})});
+   Object.entries(t.drops||{}).forEach(([,r])=>{bd(mg(r)).drop++})}});
+ const v={B:Object.values(B),W:W.sort((a,b)=>b.pts-a.pts),TR:TR.filter(t=>t.sides.length>1).sort((a,b)=>a.worst.net-b.worst.net),n:T.length};TXC={k,v};return v}
+function waiverCard(w){return gcard({label:"Best waiver pickup of all time",icon:"🚀",color:"green",h:178,big:w.name+((S.pos||{})[w.id]?" ("+S.pos[w.id]+")":""),sub:`${w.m} · ${w.season} Week ${w.week} · ${w.type==="waiver"?"waiver claim":"free agent"}`,chips:[["Pts as starter",nf(w.pts)],["Starts",w.starts],["FAAB bid",w.bid?"$"+w.bid:"free"],["Added","Wk "+w.week]]})}
+function tradeCard(tr){const s=tr.worst,o=tr.sides.find(x=>x!==s)||{m:"—"},L=(arr,x,y0)=>arr.slice(0,3).map((p,i)=>`<text x="${x}" y="${y0+i*17}" font-size="12" fill="#fff">${esc(p.name)} <tspan fill="#fca5a5">${nf(p.s)}</tspan></text>`).join(""),
+ P=(a,x)=>a.length?`<text x="${x}" y="178" font-size="11" fill="#fff" opacity=".75">+ ${esc(a.slice(0,2).join(", "))}</text>`:"";
+ const extra=`<text x="22" y="118" font-size="10" letter-spacing="1" fill="#fca5a5">GAVE UP</text><text x="290" y="118" font-size="10" letter-spacing="1" fill="#fca5a5">GOT BACK</text>`+L(s.gave,22,134)+L(s.got,290,134)+P(s.picksOut,22)+P(s.picksIn,290)+`<text x="260" y="150" text-anchor="middle" font-size="22" fill="#fff" opacity=".6">⇄</text>`;
+ return gcard({label:"Worst trade of all time",icon:"📉",color:"red",h:262,cy:198,big:`${s.m} lost to ${o.m}`,sub:`${tr.season} Week ${tr.week} · points = what each player scored the rest of that season`,chips:[["Gave up",nf(s.sg)],["Got back",nf(s.sr)],["Net",(s.net>=0?"+":"")+nf(s.net)],["When",tr.season+" Wk"+tr.week]],extra})}
+function board(title,rows,key,fmt){const L=[...rows].filter(a=>a[key]>0).sort((a,b)=>b[key]-a[key]);return`<div class="card scroll"><h2>${title}</h2><table><tr><th>#</th><th class=l>Manager</th><th>${fmt||"Count"}</th></tr>${L.map((a,i)=>`<tr><td>${i+1}</td><td class=l><b>${esc(a.m)}</b></td><td>${key==="faab"?"$"+a[key]:a[key]}</td></tr>`).join("")||"<tr><td colspan=3 class=mu>None yet</td></tr>"}</table></div>`}
+function txTab(D){const X=txStats();if(!X||!X.n)return NOX("Transactions");const e=esc,bw=X.W[0],wt=X.TR[0];
+ return`<div class=grid>${bw?waiverCard(bw):""}${wt?tradeCard(wt):""}</div>
+ <div class=grid>${board("Most transactions ever",X.B,"tx","Moves")}${board("Most waiver &amp; free-agent pickups",X.B,"add","Adds")}${board("Most trades",X.B,"trade","Trades")}${board("Most FAAB spent",X.B,"faab","FAAB")}${board("Most players dropped",X.B,"drop","Drops")}</div>
+ <div class="card scroll"><h2>Best waiver pickups</h2><table><tr><th>#</th><th class=l>Player</th><th class=l>Manager</th><th>When</th><th>Pts</th><th>Starts</th><th>Bid</th></tr>${X.W.slice(0,8).map((w,i)=>`<tr><td>${i+1}</td><td class=l><b>${e(w.name)}</b></td><td class=l>${e(w.m)}</td><td>${w.season} Wk${w.week}</td><td>${nf(w.pts)}</td><td>${w.starts}</td><td>${w.bid?"$"+w.bid:"—"}</td></tr>`).join("")}</table></div>
+ <div class="card scroll"><h2>Top 10 worst trades of all time</h2><div class="mu sm" style="margin-bottom:6px">Tap a trade to see every player and pick involved.</div><table><tr><th>#</th><th class=l>When</th><th class=l>Biggest loser</th><th class=l>Other side</th><th>Net pts</th></tr>${X.TR.slice(0,10).map((t,i)=>{const o=!!(S.tro&&S.tro[i]);return`<tr data-trd="${i}" style="cursor:pointer"><td>${o?"▾":"▸"} ${i+1}</td><td class=l>${t.season} Wk${t.week}</td><td class=l><b>${e(t.worst.m)}</b></td><td class=l>${t.sides.filter(s=>s!==t.worst).map(s=>e(s.m)).join(", ")}</td><td style="color:#f87171">${nf(t.worst.net)}</td></tr>`+(o?`<tr><td colspan=5 style="white-space:normal;text-align:left">${t.sides.map(sd=>`<div style="margin:4px 0 8px"><b>${e(sd.m)}</b> <span class="mu sm">sent</span> ${sd.gave.map(p=>e(p.name)+" <span class=mu>("+nf(p.s)+")</span>").concat(sd.picksOut.map(e)).join(", ")||"—"}<br><span class="mu sm">and got</span> ${sd.got.map(p=>e(p.name)+" <span class=mu>("+nf(p.s)+")</span>").concat(sd.picksIn.map(e)).join(", ")||"—"}</div>`).join("")}<div class="mu sm">Points = what each player scored as a starter the rest of that season.</div></td></tr>`:"")}).join("")||"<tr><td colspan=5 class=mu>No trades yet.</td></tr>"}</table></div>
+ <div class="card mu sm">Pickup value = points that player scored as a starter for the manager who added him, from the week of the move on. Trade value = points each player scored as a starter (for anyone) from the week of the trade on, so a trade is graded by what each side gave up vs. got back. Draft picks in a trade are listed but not valued.</div>`}
+
+// ---------- MVP + awards + season stories ----------
+function mvpFor(k){const[se,src]=k.split("|"),t={};(S.pp||[]).forEach(x=>{if(String(x.season)!==se||x.src!==src)return;const a=t[x.id]=t[x.id]||{id:x.id,pts:0,n:0,own:{}};a.pts+=x.pts;a.n++;a.own[x.own]=(a.own[x.own]||0)+x.pts});
+ const L=Object.values(t).sort((a,b)=>b.pts-a.pts);if(!L.length)return null;const a=L[0];a.m=canon(Object.entries(a.own).sort((x,y)=>y[1]-x[1])[0][0]);a.name=pn(a.id);a.pos=(S.pos||{})[a.id]||"";return a}
+let MVC={k:"",v:{}};
+function mvpCount(D){const ks=seasonsOf(D).filter(k=>!isCur(k)),key=ks.join()+"|"+(S.pp||[]).length;if(MVC.k!==key){const c={};ks.forEach(k=>{const m=mvpFor(k);if(m)c[m.m]=(c[m.m]||0)+1});MVC={k:key,v:c}}return MVC.v}
+function seasonExtra(D,k){const[se,src]=k.split("|"),gs=D.gs.filter(g=>sk(g)===k&&!g.agg&&!g.po),T={};let out="";
+ gs.forEach(g=>[[g.A,g.pa],[g.B,g.pb]].forEach(([m,p])=>(T[m]=T[m]||[]).push(p)));
+ const st=Object.entries(T).map(([m,a])=>{const mu=a.reduce((x,y)=>x+y,0)/a.length,sd=Math.sqrt(a.reduce((x,y)=>x+(y-mu)*(y-mu),0)/a.length);return{m,mu,sd}});
+ if(st.length>3){const cons=[...st].sort((a,b)=>a.sd-b.sd)[0],boom=[...st].sort((a,b)=>b.sd-a.sd)[0];out+=`<p style="line-height:1.6;margin:8px 0 0"><b>Tendencies.</b> ${esc(cons.m)} was the steadiest scorer (±${nf(cons.sd)} week to week), while ${esc(boom.m)} lived on the edge, swinging ±${nf(boom.sd)} from week to week.</p>`}
+ const X=src==="sleeper"?txStats():null;if(X){const ts=X.TR.filter(t=>t.season===+se),wv=X.W.filter(w=>w.season===+se),B={};wv.forEach(w=>B[w.m]=(B[w.m]||0)+1);const act=Object.entries(B).sort((a,b)=>b[1]-a[1])[0];
+  if(ts.length){const t=ts[0],w=t.worst,o=t.sides.find(s=>s!==w);out+=`<p style="line-height:1.6;margin:8px 0 0"><b>The trade that changed the season.</b> In Week ${t.week}, ${esc(w.m)} and ${esc(o?o.m:"another team")} swung the deal that mattered most: ${esc(w.m)} sent out ${w.gave.map(x=>esc(x.name)).join(", ")||"picks"} (${nf(w.sg)} pts the rest of the way) for ${w.got.map(x=>esc(x.name)).join(", ")||"picks"} (${nf(w.sr)} pts). The gap: ${nf(Math.abs(w.net))} points ${w.net<0?"in "+esc(o?o.m:"the other side")+"’s favor":"in "+esc(w.m)+"’s favor"}.</p>`}
+  if(wv.length&&wv[0].pts>0)out+=`<p style="line-height:1.6;margin:8px 0 0"><b>On the wire.</b> ${act?esc(act[0])+" was the most active on waivers ("+act[1]+" adds). ":""}The best pickup was ${esc(wv[0].name)} (${esc(wv[0].m)}, Week ${wv[0].week}), who scored ${nf(wv[0].pts)} as a starter.</p>`}
+ return out}
+function finalTeam(k,m){const[se,src]=k.split("|"),P=(S.pp||[]).filter(x=>String(x.season)===se&&x.src===src&&canon(x.own)===m);if(!P.length)return`<div class="card mu sm">Player lineups aren’t loaded for this season yet.</div>`;const w=Math.max(...P.map(x=>x.week)),L=P.filter(x=>x.week===w).sort((a,b)=>b.pts-a.pts),tot={};P.forEach(x=>tot[x.id]=(tot[x.id]||0)+x.pts);
+ return`<div class=card style="margin-bottom:10px"><h2>${esc(m)} · final team (Week ${w} lineup)</h2>${L.map(x=>`<div class=g><span><b>${esc(pn(x.id))}</b> <span class="mu sm">${esc((S.pos||{})[x.id]||"")}</span></span><span><b>${nf(x.pts)}</b> <span class="mu sm">that week · ${nf(tot[x.id])} season</span></span></div>`).join("")}<div class="mu sm">Starters only; bench players aren’t in the data.</div></div>`}
+function awardsTab(D){const ks=seasonsOf(D),R=gameScores(D);if(!ks.length)return EMP;
+ return`<div class=row style="align-items:flex-start;justify-content:space-between"><h2>Yearly awards &amp; season stories</h2>${RUBRIC}</div><div class="card mu sm" style="margin-top:0">⭐ <b>League MVP counts toward the Legacy score</b> in the Hall of Fame: +10 for each completed season a manager’s player wins MVP (MVP = the player who scored the most as a starter; credited to the manager who got the most of those points).</div>`+
+ ks.map(k=>{const st=seasonStory(D,k);if(!st)return"";const gy=R.find(x=>sk(x.g)===k),bt=st.c?st.c.m:st.top.m,mv=mvpFor(k),cur=isCur(k),T=D.C[bt]&&D.C[bt].by&&D.C[bt].by[k.split("|")[0]+"·"+k.split("|")[1]];
+  const gt=gcard({label:"Team of the year",icon:"🏆",color:"gold",h:178,big:bt,sub:(st.c?"Champion":cur?"Best record so far":"Best record")+" · "+ky(k)+" "+(k.split("|")[1]==="espn"?"ESPN":"Sleeper"),chips:[["Record",st.top.m===bt?st.top.w+"-"+st.top.l:(T?T.w+"-"+T.l:"—")],["Points",T?nf(T.pf):nf(st.top.pf)],["Title",st.c?"Champion":"—"],["Best record",st.top.m]]});
+  const mc=mv?gcard({label:"League MVP"+(cur?" (leader)":""),icon:"⭐",color:"purple",h:178,big:mv.name+(mv.pos?" ("+mv.pos+")":""),sub:`${ky(k)} · rostered by ${mv.m}`,chips:[["Points",nf(mv.pts)],["Starts",mv.n],["Per start",nf(mv.pts/mv.n)],["Legacy","+10"]]}):"";
+  const gc=gy?gcard({label:"Game of the year",icon:"🔥",color:"blue",h:178,big:`${gy.g.A} ${nf(gy.g.pa)} – ${nf(gy.g.pb)} ${gy.g.B}`,sub:`${ky(k)} · Week ${gy.g.week}${gy.isF?" · Championship":gy.g.po?" · Playoffs":""}`,chips:[["Grade",gy.tot.toFixed(0)+"/100"],["Margin",nf(gy.m)],["Combined",nf(gy.g.pa+gy.g.pb)],["Week",gy.g.week]]}):"";
+  return`<div class=card><h2>${ky(k)} ${k.split("|")[1]==="espn"?"ESPN":"Sleeper"} season</h2><div class=grid style="margin-bottom:10px"><div data-toy="${k}" style="cursor:pointer">${gt}<div class="mu sm" style="text-align:center;margin-top:4px">${S.toy&&S.toy[k]?"▾":"▸"} Tap to see their final team</div></div>${mc}${gc}</div>${S.toy&&S.toy[k]?finalTeam(k,bt):""}<p style="line-height:1.6;margin:0">${st.s}</p>${seasonExtra(D,k)}</div>`}).join("")}
+
+// ---------- DASHBOARD ----------
+async function loadLive(){if(S.liveBusy||(S.live&&Date.now()-S.live.t<60000))return false;S.liveBusy=true;
+ try{const st=await J("https://api.sleeper.app/v1/state/nfl"),w=+st.display_week||+st.week;if(!w)throw 0;
+  const ms=await J("https://api.sleeper.app/v1/league/"+SL_NOW+"/matchups/"+w),se=Math.max(0,...Object.keys(S.ro||{}).map(Number)),ro=(S.ro||{})[se]||{},rows=[];
+  ms.forEach(x=>(x.starters||[]).forEach(id=>{const p=x.players_points&&x.players_points[id];if(p!=null&&id!=="0")rows.push({id,pts:p,m:canon(ro[x.roster_id]||"Roster "+x.roster_id)})}));
+  rows.sort((a,b)=>b.pts-a.pts);S.live={w,t:Date.now(),rows:rows.slice(0,3),any:rows.some(r=>r.pts>0)};S.xid=S.xid||new Set();S.live.rows.forEach(r=>S.xid.add(r.id));await loadNames();return true}
+ catch(e){S.live=S.live||{rows:[],w:0};S.live.t=Date.now();return false}finally{S.liveBusy=false}}
+function liveHTML(){let rows,lab;const L=S.live&&S.live.any&&S.live.rows.length?S.live:null;
+ if(L){rows=L.rows;lab="Live · Week "+L.w}else{const pp=(S.pp||[]).filter(x=>x.src==="sleeper");if(!pp.length)return`<span class=mu>Player scores load with the weekly data.</span>`;
+  const se=Math.max(...pp.map(x=>x.season)),w=Math.max(...pp.filter(x=>x.season===se).map(x=>x.week));rows=pp.filter(x=>x.season===se&&x.week===w).sort((a,b)=>b.pts-a.pts).slice(0,3).map(x=>({id:x.id,pts:x.pts,m:canon(x.own)}));lab="Week "+w+" (latest final)"}
+ return`<div class="mu sm" style="margin-bottom:4px">${lab}</div>`+rows.map((r,i)=>`<div class=g><span><span class=mu>${i+1}</span> <b>${esc(pn(r.id))}</b> <span class="mu sm">${esc((S.pos||{})[r.id]||"")} · ${esc(r.m)}</span></span><b>${nf(r.pts)}</b></div>`).join("")}
+function dash(D){const ks=seasonsOf(D);if(!ks.length)return hub(D);const k=ks[0],gs=D.gs.filter(g=>sk(g)===k&&!g.agg),reg=gs.filter(g=>!g.po),T={},e=esc;
+ reg.forEach(g=>[[g.A,g.pa,g.pb],[g.B,g.pb,g.pa]].forEach(([m,p,q])=>{const t=T[m]=T[m]||{m,w:0,l:0,pf:0};p>q?t.w++:p<q&&t.l++;t.pf+=p}));
+ const R=Object.values(T).sort((a,b)=>b.w-a.w||b.pf-a.pf),N=S.next,SM=getSim(N),tb=tbRows(D),odds={},wk=Math.max(0,...gs.map(g=>g.week)),W=gs.filter(g=>g.week===wk),mw=[...W].sort((a,b)=>(b.pa+b.pb)-(a.pa+a.pb))[0];
+ if(SM)SM.rows.forEach(r=>odds[r.m]=r.pct);const pot=SM?SM.pot:6;
+ const pic=`<div class=card data-go=po style="cursor:pointer"><h2>Playoff picture <span class=mu>→ chances</span></h2>${R.slice(0,pot+2).map((t,i)=>`<div class=g style="${i===pot-1?"border-bottom:2px solid var(--hl);padding-bottom:4px;margin-bottom:4px":""}${i>=pot?";opacity:.75":""}"><span><span class=mu>${i+1}</span> <b>${e(t.m)}</b> <span class="mu sm">${t.w}-${t.l}</span></span><b>${odds[t.m]!=null?pcs(odds[t.m])+"%":i<pot?"in":"out"}</b></div>`).join("")}<div class="mu sm">Line = top ${pot} make the playoffs${SM?" · odds from simulations":""}</div></div>`;
+ let mt;if(SM&&SM.gotw>=0){const g=SM.games[SM.gotw];mt=`<div class=card data-go=story style="cursor:pointer"><h2>👑 Matchup of the week · Week ${SM.week}</h2><div class=big style="font-size:20px">${e(g.a)} vs ${e(g.b)}</div><div class=g><span class=mu>${e(g.a)} playoff odds</span><b>${pcs(g.aB)}% → ${pcs(g.aA)}%</b></div><div class=g><span class=mu>${e(g.b)} playoff odds</span><b>${pcs(g.bB)}% → ${pcs(g.bA)}%</b></div><div class="mu sm">Loss → win · tap for the storyline</div></div>`}
+ else mt=`<div class=card data-go=story style="cursor:pointer"><h2>Matchup of the week</h2>${mw?`<div class=mu>Week ${wk} highest-scoring game</div><b>${e(mw.A)} ${nf(mw.pa)} – ${nf(mw.pb)} ${e(mw.B)}</b>`:"<span class=mu>—</span>"}</div>`;
+ loadLive().then(u=>{if(u&&S.tab==="home")render()});
+ const t3=R.slice(0,3),stc=`<div class="card scroll" data-go=po style="cursor:pointer;margin:0"><h2>${ky(k)} standings <span class=mu>→</span></h2><table>${t3.map((t,i)=>`<tr><td>${i+1}</td><td class=l><b>${e(t.m)}</b></td><td>${t.w}-${t.l}</td><td>${nf(t.pf)}</td></tr>`).join("")}</table><div class="mu sm" style="margin-top:6px">Top 3</div></div>`,
+ lp=SM?[...SM.rows].sort((a,b)=>b.last-a.last).slice(0,3).map(r=>({m:r.m,v:r.last,rec:r.rec})):R.slice(-3).reverse().map(t=>({m:t.m,v:null,rec:t.w+"-"+t.l})),
+ lpc=`<div class=card data-go=sacko style="cursor:pointer;margin:0"><h2>Last place odds <span class=mu>→</span></h2>${lp.map((r,i)=>`<div class=g><span><span class=mu>${i+1}</span> <b>${e(r.m)}</b> <span class="mu sm">${r.rec}</span></span><b style="color:#f87171">${r.v!=null?pcs(r.v)+"%":"—"}</b></div>`).join("")}</div>`,
+ bbc=`<div class=card data-go=po style="cursor:pointer;margin:0"><h2>Playoff odds · bubble <span class=mu>→</span></h2>${R.slice(4,7).map((t,i)=>`<div class=g><span><span class=mu>${i+5}</span> <b>${e(t.m)}</b> <span class="mu sm">${t.w}-${t.l}</span></span><b>${odds[t.m]!=null?pcs(odds[t.m])+"%":(i+4<pot?"in":"out")}</b></div>`).join("")}<div class="mu sm">Seeds 5, 6 and 7</div></div>`;
+ return`<div class=g2>${stc}<div class=card data-go=wk style="cursor:pointer;margin:0"><h2>Top player scores <span class=mu>→</span></h2>${liveHTML()}</div></div><div class=g2 style="margin-top:12px">${lpc}${bbc}</div><div style="margin-top:12px">${mt}</div>`+ringCase(D)}
+setInterval(()=>{if(S.tab==="home"&&!document.hidden)loadLive().then(u=>{if(u&&S.tab==="home")render()})},60000);
+
+// ---------- PLAYOFF PREDICTOR (Scenarios tab) ----------
+const erf=x=>{const t=1/(1+.3275911*Math.abs(x)),y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);return x>=0?y:-y};
+function predictor(){const Z=S._sc;if(!Z)return"";const{st,np,tot,B,N,res}=Z,e=esc;
+ if(N.pot!==6)return`<div class=card><h2>Playoff predictor</h2><span class=mu>The bracket predictor supports 6-team playoffs.</span></div>`;
+ if(np<tot)return`<div class=card><h2>Playoff predictor</h2><span class=mu>Pick the winner of every remaining regular-season game (${tot-np} left), or tap <b>Auto-pick favorites</b>, to unlock the playoff bracket.</span></div>`;
+ const seeds=st.slice(0,6).map(r=>r.m),sig=seeds.join("|"),mu=m=>(res.mu&&res.mu[m])||(B[m]&&B[m].avg)||100,sd=res.sd||28,wp=(a,b)=>.5*(1+erf((mu(a)-mu(b))/(sd*Math.SQRT2)/Math.SQRT2));
+ if(!S.bk||S.bk.sig!==sig)S.bk={sig,p:{}};const p=S.bk.p,ok=(r,a,b)=>{if(p[r]&&p[r]!==a&&p[r]!==b)delete p[r]};
+ const A=[seeds[3],seeds[4]],Bm=[seeds[2],seeds[5]];ok("R1A",...A);ok("R1B",...Bm);const R2A=[seeds[0],p.R1A||null],R2B=[seeds[1],p.R1B||null];ok("R2A",...R2A);ok("R2B",...R2B);const F=[p.R2A||null,p.R2B||null];ok("F",...F);
+ S._pr={seeds,wp};const sd_=m=>seeds.indexOf(m)+1;
+ const odds={};seeds.forEach(m=>odds[m]=0);const dist=(a,b)=>[[a,wp(a,b)],[b,1-wp(a,b)]];
+ dist(A[0],A[1]).forEach(([wa,pa])=>dist(Bm[0],Bm[1]).forEach(([wb,pb])=>{const x=wp(seeds[0],wa),y=wp(seeds[1],wb);[[seeds[0],x],[wa,1-x]].forEach(([a,pa2])=>[[seeds[1],y],[wb,1-y]].forEach(([b,pb2])=>{const f=wp(a,b),q=pa*pb*pa2*pb2;odds[a]+=q*f;odds[b]+=q*(1-f)}))}));
+ const mtc=(r,a,b,t)=>!a||!b?`<div class="card mu sm" style="margin:0 0 8px"><div class=mu>${t}</div>Waiting on the earlier round</div>`:`<div class=card style="margin:0 0 8px"><div class="mu sm" style="margin-bottom:4px">${t}</div>${[a,b].map(m=>`<button data-bk="${r}|${e(m)}"${p[r]===m?' class="on"':""} style="width:100%;margin-bottom:4px;text-align:left"><b>${sd_(m)}</b> ${e(m)} <span style="float:right">${Math.round((m===a?wp(a,b):1-wp(a,b))*100)}%</span></button>`).join("")}</div>`;
+ return`<div class=card><div class=row style="margin:0"><h2 style="margin:0">Playoff predictor</h2><button id="bkf">Favorites</button><button id="bkr">Random sim</button><button id="bkc">Clear</button></div><div class="mu sm" style="margin:6px 0">Seeds come from your projected final standings: ${seeds.map((m,i)=>(i+1)+" "+e(m)).join(" · ")}. Tap a team to advance it. Percentages are each team’s chance to win that game, based on scoring averages. Seeds 1–2 get byes.</div>
+ <div class=grid><div><div class="mu sm">ROUND 1</div>${mtc("R1A",A[0],A[1],"Seed 4 vs 5")}${mtc("R1B",Bm[0],Bm[1],"Seed 3 vs 6")}</div><div><div class="mu sm">SEMIFINALS</div>${mtc("R2A",R2A[0],R2A[1],"Seed 1 vs winner of 4/5")}${mtc("R2B",R2B[0],R2B[1],"Seed 2 vs winner of 3/6")}</div><div><div class="mu sm">CHAMPIONSHIP</div>${mtc("F",F[0],F[1],"Final")}${p.F?`<div class=card style="margin:0;border-color:var(--hl)"><div class=mu>🏆 Predicted champion</div><div class=big style="color:var(--hl)">${e(p.F)}</div></div>`:""}</div></div></div>
+ <div class=card><h2>Title odds from this bracket</h2>${Object.entries(odds).sort((a,b)=>b[1]-a[1]).map(([m,v])=>`<div class=g><span><span class=mu>${sd_(m)}</span> ${e(m)}</span><b>${(v*100).toFixed(0)}%</b></div>`).join("")}</div>`}
+function bkFill(id){const Z=S._pr;if(!Z||!S.bk)return;if(id==="bkc"){S.bk.p={};return}const{seeds,wp}=Z,p=S.bk.p,pick=(a,b)=>id==="bkf"?(wp(a,b)>=.5?a:b):(Math.random()<wp(a,b)?a:b);
+ p.R1A=pick(seeds[3],seeds[4]);p.R1B=pick(seeds[2],seeds[5]);p.R2A=pick(seeds[0],p.R1A);p.R2B=pick(seeds[1],p.R1B);p.F=pick(p.R2A,p.R2B)}
+document.addEventListener("click",e=>{const t=e.target,g=t.closest&&t.closest("[data-go]");
+ if(g&&!(t.closest&&t.closest("button,a,input,select"))){S.tab=g.dataset.go;render();scrollTo(0,0);return}
+ const b=t.closest&&t.closest("[data-bk]");if(b&&S.bk){const i=b.dataset.bk.indexOf("|"),r=b.dataset.bk.slice(0,i),m=b.dataset.bk.slice(i+1);if(S.bk.p[r]===m)delete S.bk.p[r];else S.bk.p[r]=m;render();return}
+ if(t.id==="sca"&&S._ap){S._ap();render();return}if(t.id==="bkf"||t.id==="bkr"||t.id==="bkc"){bkFill(t.id);render()}});
+
+function render(){const D=data();$("nav").innerHTML=TABS.map(([k,t])=>`<button data-t="${k}" class="${S.tab===k?"on":""}">${t}</button>`).join("");
+ $("app").innerHTML={home:dash,games:gamesTab,awards:awardsTab,draft,tx:txTab,hof,atm,scenarios,charts,eras,sacko,story,str:streakboard,po:playoffs,luck,power,profile,vault,whatif,rec:records,h2h,wk:weekly,map:mapper}[S.tab](D);$("flt").value=S.filter}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-t],th.s,tr.ex,td.cell");if(!t)return;
+ if(t.dataset.t){S.tab=t.dataset.t;if(t.dataset.a){S.h1=t.dataset.a;S.h2=t.dataset.b}}else if(t.matches("th.s")){S.sd=S.sk===t.dataset.k?-S.sd:-1;S.sk=t.dataset.k}
+ else if(t.matches("tr.ex")){S.open[t.dataset.m]=!S.open[t.dataset.m]}else{S.h1=t.dataset.a;S.h2=t.dataset.b}render()});
+document.addEventListener("change",e=>{const t=e.target;if(t.id==="flt")S.filter=t.value;else if(t.id==="s1")S.h1=t.value;else if(t.id==="s2")S.h2=t.value;
+ else if(t.id==="ws"){S.ws=+t.value;S.ww=null}else if(t.id==="ww")S.ww=+t.value;
+ else if(t.id==="ys")S.ys=t.value;else if(t.id==="am")S.am=t.value;else if(t.id==="pm")S.pm=t.value;else if(t.id==="wa")S.wa=t.value;else if(t.id==="wb")S.wb=t.value;
+ else if(t.dataset.k){MAP[t.dataset.k]=t.value.trim()||canon(t.dataset.k);save()}else return;render()});
+document.addEventListener("click",e=>{if(e.target.id==="rs"){MAP={};save();render()}});
+$("reload").onclick=loadAll;$("paste").onclick=()=>{setScripts();$("dlg").showModal()};$("cx").onclick=()=>$("dlg").close();
+function addSleeper(b){const L=b.L,season=+L.season,ps=L.settings.playoff_week_start||15,B=b;
+ S.games=S.games.filter(g=>!(g.src==="sleeper"&&g.season===season));S.champs=S.champs.filter(c=>!(c.src==="sleeper"&&c.season===season));S.po[season+"sleeper"]=L.settings.playoff_teams||6;
+ const own={};B.rs.forEach(r=>{const u=B.us.find(x=>x.user_id===r.owner_id);if(u&&u.display_name&&u.username)SLU[u.display_name.toLowerCase().trim()]=u.username.toLowerCase();own[r.roster_id]="sleeper:"+(u?u.display_name:"Roster "+r.roster_id);if(u&&u.metadata&&u.metadata.team_name){S.tn=S.tn||{};S.tn[season+"|"+own[r.roster_id]]=u.metadata.team_name}});
+ S.ro=S.ro||{};S.ro[season]=own;S.pp=(S.pp||[]).filter(r=>!(r.src==="sleeper"&&r.season===season));B.ms.forEach((arr,i)=>(arr||[]).forEach(x=>{if(x.players_points&&x.starters)x.starters.forEach(id=>{const q=x.players_points[id];if(q!=null&&id!=="0")S.pp.push({src:"sleeper",season,week:i+1,id,own:own[x.roster_id],pts:q})})}));
+ B.ms.forEach((arr,i)=>{const m={};(arr||[]).forEach(x=>{if(x.matchup_id!=null)(m[x.matchup_id]=m[x.matchup_id]||[]).push(x)});
+  Object.values(m).forEach(p=>{if(p.length===2&&(p[0].points||p[1].points))S.games.push({src:"sleeper",season,week:i+1,po:i+1>=ps,a:own[p[0].roster_id],b:own[p[1].roster_id],pa:p[0].points,pb:p[1].points})})});
+ if(L.status==="in_season"){S.next=null;S.sched={};for(let i=0;i<B.ms.length;i++){const m={};(B.ms[i]||[]).forEach(x=>{if(x.matchup_id!=null)(m[x.matchup_id]=m[x.matchup_id]||[]).push(x)});
+  const pr=Object.values(m).filter(p=>p.length===2);if(pr.length&&!pr.some(p=>p[0].points||p[1].points)){const pp=pr.map(p=>[own[p[0].roster_id],own[p[1].roster_id]]);
+   if(!S.next)S.next={season,week:i+1,ps,po:i+1>=ps,pot:L.settings.playoff_teams||6,pairs:pp};if(i+1<ps)S.sched[i+1]=pp}}}
+ S.pl=S.pl||{};if(L.status==="complete"){const q=new Set();(B.wb||[]).forEach(x=>[x.t1,x.t2].forEach(r=>{if(typeof r==="number"&&own[r])q.add(own[r])}));if(q.size)S.pl[season+"sleeper"]=[...q]}
+ const fin=(B.wb||[]).find(x=>x.p===1);if(fin&&fin.w&&L.status==="complete")S.champs.push({src:"sleeper",season,key:own[fin.w]})}
+async function loadSleeper(){if(!SL_NOW)return;try{let id=SL_NOW;const U="https://api.sleeper.app/v1/league/";while(id&&id!=="0"){const L=await J(U+id),us=await J(U+id+"/users"),rs=await J(U+id+"/rosters");let wb=[];try{wb=await J(U+id+"/winners_bracket")}catch(e){}
+ const ps=L.settings.playoff_week_start||15,ms=await Promise.all(Array.from({length:ps+2},(_,i)=>J(U+id+"/matchups/"+(i+1)).catch(()=>[])));addSleeper({L,us,rs,wb,ms});if(!S.lname&&L.name){S.lname=L.name;setBrand()}status("Sleeper "+L.season+" loaded");id=L.previous_league_id}}
+ catch(e){status("Live fetch blocked here — click Paste data")}}
+function setScripts(){$("sn1").value='(async()=>{const B="https://api.sleeper.app/v1/league/",J=u=>fetch(u).then(r=>r.json());let id="'+SL_NOW+'",o=[];while(id&&id!=="0"){const L=await J(B+id),us=await J(B+id+"/users"),rs=await J(B+id+"/rosters");let wb=[];try{wb=await J(B+id+"/winners_bracket")}catch(e){}const ps=L.settings.playoff_week_start||15;const ms=await Promise.all(Array.from({length:ps+2},(_,i)=>J(B+id+"/matchups/"+(i+1)).catch(()=>[])));o.push({L,us,rs,wb,ms});id=L.previous_league_id}const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(o)],{type:"application/json"}));a.download="sleeper-data.json";document.body.appendChild(a);a.click();console.log("downloaded",o.length,"seasons")})()';
+$("sn2").value='(async()=>{const o=[];for(let y=2018;y<=2026;y++){try{const r=await fetch("https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/"+y+"/segments/0/leagues/'+ESPN_ID+'?view=mTeam&view=mMatchup&view=mStandings&view=mSettings");o.push(await r.json())}catch(e){}}const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(o)],{type:"application/json"}));a.download="espn-data.json";document.body.appendChild(a);a.click();console.log("downloaded",o.length,"seasons")})()';
+}
+$("go").onclick=()=>{const er=$("er");er.style.color="#f87171";try{let t=$("ta").value.trim();if(!t){er.textContent="The box is empty — paste the copied data first.";return}
+ const i=t.search(/[\[{]/);if(i>0)t=t.slice(i);if(t.startsWith("(async")){er.textContent="That is the script, not the data. Run it in the other tab, then paste what it copies.";return}
+ const x=JSON.parse(t),n=(Array.isArray(x)?x:[x]).reduce((a,d)=>a+(d.L?(addSleeper(d),1):addEspn(d)?1:0),0);
+ if(!n){if(!Array.isArray(x)&&x.league_id){er.textContent="That is the Sleeper league info page, not the script result. Run the Sleeper script in that tab’s Console (Ctrl+Shift+J), then paste what it copies.";return}er.textContent="Read the text, but found no seasons with games in it. Is the league public and the season played?";return}
+ status("Imported "+n+" season(s)");loadNames().then(render);$("ta").value="";er.textContent="";$("dlg").close();render()}catch(e){er.textContent="Couldn’t import: "+e.message+" (the paste may be cut off — copy it again)"}};
+$("fl").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$("ta").value=r.result;$("go").onclick();e.target.value=""};r.readAsText(f)};
+function fixSleeper(){}
+// ===== Login, league detection, branding =====
+const CFG={brand:"League Scrapbook",proxy:""}; // proxy = your ESPN connector URL (see espn-proxy.js); optional
+const ESPNH="https://lm-api-reads.fantasy.espn.com",SLU_API="https://api.sleeper.app/v1/";
+let ME="",PEND="";
+const J=async u=>{const run=async(url,o)=>{const r=await fetch(url,o);if(!r.ok)throw Error(u+" → "+r.status);return r.json()};
+ if(u.startsWith(ESPNH)&&CFG.proxy){const p=CFG.proxy.replace(/\/$/,"")+u.slice(ESPNH.length);
+  if(CFG.ck)return run(p,{headers:{"X-ESPN-Cookie":CFG.ck}});try{return await run(u)}catch(e){return run(p)}}
+ return run(u)};
+function parse(t){const out=[];(t||"").split(/[\s,;]+/).filter(Boolean).forEach(x=>{let m;
+ if(/^https?:\/\/|\//i.test(x)||/\.(com|app)/i.test(x)){
+  if(m=x.match(/leagueId=(\d+)/i))out.push({t:"espn",v:m[1]});
+  else if(m=x.match(/sleeper\.(?:com|app)\/(?:leagues|league)\/(\d{10,})/i)||x.match(/(\d{15,})/))out.push({t:"sl",v:m[1]});
+  else if(m=x.match(/espn\.com.*?\/league\/?.*?(\d{4,12})/i))out.push({t:"espn",v:m[1]});
+  else if(m=x.match(/sleeper\.(?:com|app)\/(?:u|user)\/@?([\w.]+)/i))out.push({t:"user",v:m[1]});
+  return}
+ x=x.replace(/^@/,"");
+ if(/^\d{15,}$/.test(x))out.push({t:"sl",v:x});else if(/^\d{4,12}$/.test(x))out.push({t:"espn",v:x});else out.push({t:"user",v:x})});return out}
+function hint(){const k=parse($("li").value),n={sl:"Sleeper league",espn:"ESPN league",user:"Sleeper username"};
+ $("lhint").textContent=k.length?"✓ Looks like: "+k.map(x=>n[x.t]).join(" + "):"";$("adv").hidden=!(CFG.proxy&&k.some(x=>x.t==="espn"))}
+const lerr=m=>{const e=$("lmsg");e.className="er";e.textContent=m;$("lgo").disabled=false};
+async function checkEspn(id){const u=y=>`${ESPNH}/apis/v3/games/ffl/seasons/${y}/segments/0/leagues/${id}?view=mSettings`;let d;
+ const ck=($("swid").value.trim()&&$("s2").value.trim());CFG.ck=ck?"SWID="+$("swid").value.trim()+"; espn_s2="+$("s2").value.trim():"";
+ try{d=await J(u(YEAR))}catch(e){try{d=await J(u(YEAR-1))}catch(e2){const s=String(e2.message);
+  if(/→ (401|403)/.test(s))throw Error("That ESPN league is private. In ESPN, open League Settings and make it viewable to the public, then try again.");
+  if(/→ 404/.test(s))throw Error("ESPN couldn’t find league "+id+". Double-check the number in your league’s web address.");
+  throw Error("Couldn’t reach ESPN from here. Check your connection and try again.")}}return d}
+async function sleeperUser(name){const u=await J(SLU_API+"user/"+encodeURIComponent(name)).catch(()=>null);
+ if(!u||!u.user_id)throw Error("No Sleeper username “"+name+"”. Check the spelling, or paste your league link instead.");
+ const seen={},L=[];for(const y of [YEAR,YEAR-1,YEAR-2]){try{(await J(SLU_API+"user/"+u.user_id+"/leagues/nfl/"+y)).forEach(l=>{if(!seen[l.league_id]){seen[l.league_id]=1;L.push(l)}})}catch(e){}if(L.length)break}
+ if(!L.length)throw Error("Found "+u.display_name+", but no football leagues. Paste a league link instead.");
+ return L.length===1?{id:L[0].league_id,me:u.display_name}:{pick:L,me:u.display_name}}
+function showPick(L,me){$("lmsg").className="";$("lmsg").textContent="Which league?";$("lgo").disabled=false;
+ $("lpick").innerHTML=L.map((l,i)=>`<button data-i="${i}"><b>${esc(l.name)}</b> <span class="mu sm">${esc(l.season)} · ${l.total_rosters} teams</span></button>`).join("");
+ $("lpick").onclick=e=>{const b=e.target.closest("button");if(b)enter({sl:L[b.dataset.i].league_id,es:PEND,me})}}
+async function go(){const k=parse($("li").value);$("lpick").innerHTML="";if(!k.length)return lerr("Type or paste something first.");
+ $("lgo").disabled=true;$("lmsg").className="";$("lmsg").textContent="Looking up your league…";let sl="",es="",me="";PEND="";
+ try{for(const x of k){if(x.t==="espn"){await checkEspn(x.v);es=x.v}}PEND=es;
+  for(const x of k){if(x.t==="sl"){const L=await J(SLU_API+"league/"+x.v).catch(()=>null);if(!L||!L.league_id)throw Error("Sleeper couldn’t find league "+x.v+".");sl=x.v}
+   else if(x.t==="user"){const r=await sleeperUser(x.v);me=r.me;if(r.pick)return showPick(r.pick,r.me);sl=r.id}}
+  enter({sl,es,me})}catch(e){lerr(e.message)}}
+function setBrand(){$("brand").innerHTML=esc(S.lname||CFG.brand);$("bld").textContent=S.lname?CFG.brand:"";document.title=(S.lname?S.lname+" · ":"")+CFG.brand}
+function enter(c){SL_NOW=c.sl||"";ESPN_ID=c.es||"";ME=c.me||"";MK="mmap-"+(SL_NOW||ESPN_ID);loadMap();
+ const sv=Object.assign({},c);try{localStorage.setItem("lg-login",JSON.stringify(sv))}catch(e){}
+ S.h1=ME;$("login").hidden=true;const f=$("flt");
+ if(SL_NOW&&ESPN_ID){f.innerHTML='<option value="all">Combined (Sleeper + ESPN)</option><option value="sleeper">Sleeper only</option><option value="espn">ESPN only</option>';f.hidden=false}else{f.hidden=true;S.filter="all"}
+ loadAll()}
+function fixSpot(){const ms=[...new Set(S.games.flatMap(g=>[canon(g.a),canon(g.b)]))];if(!ms.length)return;
+ if(!ms.includes(S.h1))S.h1=ms.find(m=>m!==S.h2)||ms[0];if(!ms.includes(S.h2)||S.h2===S.h1)S.h2=ms.find(m=>m!==S.h1)||ms[0]}
+const _render=render;render=function(){fixSpot();_render()};
+function boot(){setBrand();$("lbrand").textContent=CFG.brand;$("li").oninput=hint;$("lgo").onclick=go;$("li").onkeydown=e=>{if(e.key==="Enter")go()};
+ $("sw").onclick=()=>{try{localStorage.removeItem("lg-login")}catch(e){}location.reload()};
+ let c=null;try{c=JSON.parse(localStorage.getItem("lg-login")||"null")}catch(e){}
+ if(c&&(c.sl||c.es))enter(c);else{$("login").hidden=false;$("li").focus()}}
+
+boot();
+window.addEventListener("error",e=>{$("st").textContent="Error: "+e.message+" (line "+e.lineno+")";$("st").style.color="#f87171"});
+document.addEventListener("click",e=>{const r=e.target.closest&&e.target.closest("[data-trd],[data-toy]");if(!r)return;if(r.dataset.trd!=null){S.tro=S.tro||{};S.tro[r.dataset.trd]=!S.tro[r.dataset.trd]}else{S.toy=S.toy||{};S.toy[r.dataset.toy]=!S.toy[r.dataset.toy]}render()});
+</script></body></html>
