@@ -1,2 +1,0 @@
-# leauge-site
-Fantasy Scrapbook
